@@ -1,0 +1,48 @@
+IMU:
+  ros__parameters:
+    freq: 50.0        # Update rate of the heading estimation and data published (at least lower than the chosen FIFO_SAMPLE_RATE)
+    frame_id: 'imu_link'
+    filter: 1                 # 0: NONE, 1: MADGWICK, 2: MAHONY
+
+    # sensor specific parameters
+    accel_fs_sel: 1           # Corresponds to ACCEL_FS_SEL::A4G
+    gyro_fs_sel: 0            # Corresponds to GYRO_FS_SEL::G500DPS
+    mag_output_bits: 1        # Corresponds to MAG_OUTPUT_BITS::M14BITS
+    fifo_sample_rate: 1       # Corresponds to FIFO_SAMPLE_RATE::SMPL_500HZ
+    gyro_dlpf_cfg: 2          # Corresponds to GYRO_DLPF_CFG::DLPF_41HZ
+    accel_dlpf_cfg: 2         # Corresponds to ACCEL_DLPF_CFG::DLPF_45HZ
+    g: 9.81
+    acc_cov: 0.01
+    w_cov: 0.01
+    rpy_cov: 0.0003
+
+depth:
+  ros__parameters:
+    freq: 50.0
+    frame_id: 'bar_link'
+    offset: 0.0
+    cov: 0.0001
+
+pca9685:
+  ros__parameters:
+    device: "/dev/i2c-1"
+    address: 64           # 0x40 in hexadecimal is 64 in decimal
+    frequency: 333
+    timeout: [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000,
+              5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
+    pwm_min: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    pwm_max: [65535, 65535, 65535, 65535, 65535, 65535, 65535, 65535,
+              65535, 65535, 65535, 65535, 65535, 65535, 65535, 65535]
+    timeout_value: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+GPS:
+  ros__parameters:
+    freq: 2.0
+
+button:
+  ros__parameters:
+    freq: 50.0
+    gpio_line: 4
+    break_time: 1.0
+    release: true
+

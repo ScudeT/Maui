@@ -1,0 +1,5 @@
+simple_odom:
+  ros__parameters:
+    publish_rate: 20.0
+    header_frame: "odom"
+    child_frame: "base_link"

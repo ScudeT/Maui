@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  jazzy:
+    build: /.
+    image: maui:jazzy
+    container_name: maui_jazzy
+    user: ros
+    environment:
+      - DISPLAY=host.docker.internal:0
+      - QT_X11_NO_MITSHM=1  # Avoids potential issues with shared memory
+      - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - "${PROJECT_DIRECTORY}/src:/home/ros/ros2_ws/src" 
+      - "${PROJECT_DIRECTORY}/bags:/home/ros/ros2_ws/bags" 
+      - /tmp/.X11-unix:/tmp/.X11-unix  # Mounts the X11 socket
+    network_mode: host  # Uses the host network
+    ipc: host
+    privileged: true  # May be needed for full hardware access
+    # Open in the background as bash
+    tty: true
+    command: bash 
+    ports:
+      - "8765:8765"

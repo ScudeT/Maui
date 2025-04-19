@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  jazzy:
+    build: .
+    image: maui:jazzy
+    container_name: maui_jazzy
+    user: ros
+    environment:
+      - DISPLAY=$DISPLAY
+      - XAUTHORITY=/home/ros/.Xauthority
+      - QT_X11_NO_MITSHM=1  # Avoids potential issues with shared memory
+    volumes:
+      - "/home/ray/project_manta/ros2_ws/src:/home/ros/ros2_ws/src" 
+      - "/home/ray/project_manta/ros2_ws/bags:/home/ros/ros2_ws/bags" 
+      - /tmp/.X11-unix:/tmp/.X11-unix  # Mounts the X11 socket
+      - $HOME/.Xauthority:/home/ros/.Xauthority  # Mounts your .Xauthority file
+      - /dev:/dev  # Access devices
+    devices:
+      - /dev/i2c-1:/dev/i2c-1
+      - /dev/ttyAMA0:/dev/ttyAMA0
+      - /dev/gpiochip0:/dev/gpiochip0
+      - /dev/video0:/dev/video0
+      - /dev/video1:/dev/video1
+      - /dev/media0:/dev/media0
+      - /dev/media1:/dev/media1
+    group_add:
+      - "994"  # Add i2c group  
+    network_mode: host  # Uses the host network
+    ipc: host
+    privileged: true  # May be needed for full hardware access
+    tty: true
+    command: bash
