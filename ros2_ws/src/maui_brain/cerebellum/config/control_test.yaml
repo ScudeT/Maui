@@ -1,0 +1,6 @@
+trigger_publisher_node:
+  ros__parameters:
+    topic_name: /my_topic      # topic to publish Float32 on
+    on_value:     5.0          # value when 'turn_on' is called
+    off_value:   -1.0          # value when 'turn_off' is called
+    delay:        2.5          # seconds to wait before publishing

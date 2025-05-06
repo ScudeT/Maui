@@ -13,32 +13,28 @@ def generate_launch_description():
     
 
     params_file = os.path.join( # Path to mpu parameters
-        get_package_share_directory('parietal_lobe'),
+        get_package_share_directory('cerebellum'),
         'config', 
-        'Thalamus.yaml'
+        'BMF.yaml'
     )
 
+    # ------------------------------------------ #
 
-    # -------------- Estimates necessary and initialization----------------- #
-    
-    simple_odom = Node(
-        package='parietal_lobe',
-        executable='imu_bar_odom',
-        name='simple_odom',
-        output='screen',
+    test = Node(
+        package='cerebellum',
+        executable='test_node',
+        name='test',
         parameters=[params_file],
         arguments=['--ros-args', '--log-level', 'WARN'],
+        output='screen',
         remappings=[
-            ("/imu/data","/imu/data"),
-            ("/ms5837/pose","/ms5837/pose"),
-            #---------------#
-            ("odom","odom")
+
+            ('/trigger', '/start_and_stop'),
         ]
     )
-    
-    ld.add_action(simple_odom)
 
-    # ------------------------------- #
+    # Add the included launch description to your LaunchDescription
+    ld.add_action(test)
+    # ------------------------------------------ #
 
-    # Run the node
     return ld

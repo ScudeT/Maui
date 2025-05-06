@@ -28,13 +28,13 @@ def generate_launch_description():
         arguments=['--ros-args', '--log-level', 'WARN'],
         output='screen',
         remappings=[
-            ('/omega_m', '/omega_m')
-            ('/A_m',     '/A_m',   )            
-            ('/A_d',     '/A_d',   )
-            ('/alpha_d', '/alpha_d')
+            ('/omega_m', '/omega_m'),
+            ('/A_m',     '/A_m',   ),            
+            ('/A_d',     '/A_d',   ),
+            ('/alpha_d', '/alpha_d'),
             
-            ('/theta_m', '/theta_m')
-            ('/theta_d', '/theta_d')           
+            ('/theta_m', '/theta_m'),
+            ('/theta_d', '/theta_d'),           
             
             # -------------------------- #
             ('/command', '/command'),

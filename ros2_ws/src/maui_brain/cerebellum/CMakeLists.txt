@@ -15,6 +15,8 @@ find_package(std_srvs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME})
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
@@ -26,5 +28,43 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+add_executable(ctrl_node src/ctrl_node.cpp)
+ament_target_dependencies(ctrl_node
+  rclcpp
+  std_msgs
+  std_srvs
+)
+
+add_executable(delayed_command_node src/delayed_command_node.cpp)
+ament_target_dependencies(delayed_command_node
+  rclcpp
+  std_msgs
+  std_srvs
+)
+
+# PID controller
+add_executable(pid_node src/pid_node.cpp)
+ament_target_dependencies(pid_node
+  rclcpp
+  std_msgs
+  std_srvs
+)
+
+install(TARGETS
+  ctrl_node
+  delayed_command_node
+  pid_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+
+install(DIRECTORY config/ 
+  DESTINATION share/${PROJECT_NAME}/config)
+
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}/launch)
+
+
 
 ament_package()
