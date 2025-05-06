@@ -64,7 +64,7 @@ ros2 pkg create --build-type ament_cmake --license Apache-2.0 pwm_controller --d
 
 # create py package in ros2
 ros2 pkg create --build-type ament_python --license Apache-2.0 [name] --dependencies rclpy [other dependencies]
-ros2 pkg create --build-type ament_python --license Apache-2.0 rpi-stereo --dependencies rclpy std_msgs sensor_msgs geometry_msgs stereo_msgs
+ros2 pkg create --build-type ament_python --license Apache-2.0 maui --dependencies rclpy 
 
 # start a bag reading all topics 
 ros2 bag record -o [name] -a

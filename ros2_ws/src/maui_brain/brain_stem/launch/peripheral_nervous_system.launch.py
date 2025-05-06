@@ -13,7 +13,7 @@ def generate_launch_description():
     
 
     params_file = os.path.join( # Path to mpu parameters
-        get_package_share_directory('manta_main'),
+        get_package_share_directory('brain_stem'),
         'config', 
         'PNS.yaml'
     )
@@ -85,7 +85,7 @@ def generate_launch_description():
     # ------------------------------------------ #
 
     button = Node(
-        package='manta_main',
+        package='temporal_lobe',
         executable='button_read_node',
         name='button',
         parameters=[params_file],

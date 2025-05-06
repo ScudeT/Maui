@@ -29,4 +29,28 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+add_executable(imu_bar_odom src/imu_bar_odom.cpp)
+ament_target_dependencies(imu_bar_odom 
+  rclcpp 
+  sensor_msgs 
+  geometry_msgs
+  nav_msgs 
+  tf2 
+  tf2_ros
+  tf2_geometry_msgs
+)
+
+
+install(TARGETS
+  odom_fast_node
+  imu_bar_odom
+  DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY config/ 
+  DESTINATION share/${PROJECT_NAME}/config)
+
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME})
+
+
 ament_package()

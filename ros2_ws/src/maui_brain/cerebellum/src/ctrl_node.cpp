@@ -25,7 +25,7 @@ public:
     this->declare_parameter<int>("freq", 30);
     this->declare_parameter<std::vector<int>>("angle_range", std::vector<int>{-60, 60});
     this->declare_parameter<std::vector<int>>("pwm_range", std::vector<int>{15000, 40000});
-    this->declare_parameter<std::vector<double>>("start_wing", std::vector<double>{1.0, 60.0, 0.0, 0.0});
+    this->declare_parameter<std::vector<double>>("start_wing", std::vector<double>{1.0, 60.0, 0.0});
     // start_flap now holds the starting values for flap_same and flap_dif
     this->declare_parameter<std::vector<double>>("start_flap", std::vector<double>{0.0, 0.0});
     // New parameter for clamping flap angles
@@ -54,24 +54,22 @@ public:
 
     auto start_wing = this->get_parameter("start_wing").as_double_array();
     if (start_wing.size() >= 3) {
-      omega_m_ = start_wing[0];
-      A_m_  = start_wing[1];
-      A_d_ = start_wing[2];
-      alpha_d_ = start_wing[3];
+      wing_freq_ = start_wing[0];
+      wing_amp_  = start_wing[1];
+      wing_diff_ = start_wing[2];
     } else {
-      omega_m_ = 1.0;
-      A_m_  = 0.0;
-      A_d_ = 0.0;
-      alpha_d_ = 0.0;
+      wing_freq_ = 1.0;
+      wing_amp_  = 0.0;
+      wing_diff_ = 0.0;
     }
 
     auto start_flap = this->get_parameter("start_flap").as_double_array();
     if (start_flap.size() >= 2) {
-      theta_m_ = start_flap[0];
-      theta_d_  = start_flap[1];
+      flap_same_ = start_flap[0];
+      flap_dif_  = start_flap[1];
     } else {
-      theta_m_ = 0.0;
-      theta_d_  = 0.0;
+      flap_same_ = 0.0;
+      flap_dif_  = 0.0;
     }
 
     auto clamp_flap = this->get_parameter("clamp_flap").as_integer_array();
@@ -87,20 +85,18 @@ public:
     publishing_enabled_ = false;
 
     // Subscribers for wing parameters
-    omega_m_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/freq", 10, std::bind(&CommandPublisher::omegaMCallback, this, _1));
-    A_m_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/A_m", 10, std::bind(&CommandPublisher::AmCallback, this, _1));
-    A_d_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/A_d", 10, std::bind(&CommandPublisher::AdCallback, this, _1));
-    alpha_d_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/alpha_d", 10, std::bind(&CommandPublisher::alphaDCallback, this, _1));
+    wing_freq_sub_ = this->create_subscription<std_msgs::msg::Float32>(
+      "/wing_freq", 10, std::bind(&CommandPublisher::wingFreqCallback, this, _1));
+    wing_amp_sub_ = this->create_subscription<std_msgs::msg::Float32>(
+      "/wing_amp", 10, std::bind(&CommandPublisher::wingAmpCallback, this, _1));
+    wing_diff_sub_ = this->create_subscription<std_msgs::msg::Float32>(
+      "/wing_diff", 10, std::bind(&CommandPublisher::wingDiffCallback, this, _1));
 
     // Subscribers for flap topics (using the new two-topic approach)
-    theta_m_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/theta_m", 10, std::bind(&CommandPublisher::thetaMCallback, this, _1));
-    theta_d_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/theta_d", 10, std::bind(&CommandPublisher::thetaDCallback, this, _1));
+    flap_same_sub_ = this->create_subscription<std_msgs::msg::Float32>(
+      "/flap_same", 10, std::bind(&CommandPublisher::flapSameCallback, this, _1));
+    flap_dif_sub_ = this->create_subscription<std_msgs::msg::Float32>(
+      "/flap_dif", 10, std::bind(&CommandPublisher::flapDifCallback, this, _1));
 
     // Publisher for /command topic
     command_pub_ = this->create_publisher<std_msgs::msg::Int32MultiArray>("/command", 10);
@@ -119,40 +115,30 @@ public:
 
 private:
   // Wing parameter callbacks
-  void omegaMCallback(const std_msgs::msg::Float32::SharedPtr msg)
+  void wingFreqCallback(const std_msgs::msg::Float32::SharedPtr msg)
   {
-    omega_m_ = msg->data;
+    wing_freq_ = msg->data;
   }
 
-  void AmCallback(const std_msgs::msg::Float32::SharedPtr msg)
+  void wingAmpCallback(const std_msgs::msg::Float32::SharedPtr msg)
   {
-    A_m_ = msg->data;
-  }
-
-  void AdCallback(const std_msgs::msg::Float32::SharedPtr msg)
-  {
-    A_d_ = msg->data;
+    wing_amp_ = msg->data;
   }
 
   void wingDiffCallback(const std_msgs::msg::Float32::SharedPtr msg)
   {
-    A_d_ = msg->data;
-  }
-
-  void alphaDCallback(const std_msgs::msg::Float32::SharedPtr msg)
-  {
-    alpha_d_ = msg->data;
+    wing_diff_ = msg->data;
   }
 
   // Flap parameter callbacks (new topics)
-  void thetaMCallback(const std_msgs::msg::Float32::SharedPtr msg)
+  void flapSameCallback(const std_msgs::msg::Float32::SharedPtr msg)
   {
-    theta_m_ = msg->data;
+    flap_same_ = msg->data;
   }
 
-  void thetaDCallback(const std_msgs::msg::Float32::SharedPtr msg)
+  void flapDifCallback(const std_msgs::msg::Float32::SharedPtr msg)
   {
-    theta_d_ = msg->data;
+    flap_dif_ = msg->data;
   }
 
   // Service callback: toggles publishing on/off.
@@ -203,20 +189,20 @@ private:
     double t = (current_time - start_time_).seconds();
 
     // Compute the wing motion using a sine function.
-    double half_amp = A_m_ / 2.0;
-    double sine_val = sin(2 * M_PI * omega_m_ * t);
+    double half_amp = wing_amp_ / 2.0;
+    double sine_val = sin(2 * M_PI * wing_freq_ * t);
 
     // Differential adjustment for the wings:
-    double left_wing_angle  = (half_amp - A_d_ / 2.0) * sine_val + std::max(0.0, alpha_d_);
-    double right_wing_angle = - (half_amp + A_d_ / 2.0) * sine_val - std::min(0.0, alpha_d_);
+    double left_wing_angle  = (half_amp - wing_diff_ / 2.0) * sine_val;
+    double right_wing_angle = - (half_amp + wing_diff_ / 2.0) * sine_val;
 
     // Compute flap angles:
     // flap_dif is added to both, while flap_same is added to the left and subtracted from the right.
-    // double left_flap_angle  = theta_d_ - theta_m_;
-    // double right_flap_angle = theta_d_ + theta_m_;
+    // double left_flap_angle  = flap_dif_ - flap_same_;
+    // double right_flap_angle = flap_dif_ + flap_same_;
 
-    double left_flap_angle  = std::max(0.0, theta_d_) - theta_m_;
-    double right_flap_angle = std::min(0.0, theta_d_) + theta_m_;
+    double left_flap_angle  = std::max(0.0, flap_dif_) - flap_same_;
+    double right_flap_angle = std::min(0.0, flap_dif_) + flap_same_;
 
     // Map computed angles to PWM values
     int32_t left_wing_pwm  = mapAngleToPWM(left_wing_angle);
@@ -244,13 +230,11 @@ private:
 
   // Member variables
   rclcpp::Publisher<std_msgs::msg::Int32MultiArray>::SharedPtr command_pub_;
-  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr omega_m_sub_;
-  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr A_m_sub_;
-  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr A_d_sub_;
-  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr alpha_d_sub_;
-
-  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr theta_m_sub_;
-  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr theta_d_sub_;
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr wing_freq_sub_;
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr wing_amp_sub_;
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr wing_diff_sub_;
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr flap_same_sub_;
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr flap_dif_sub_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr start_stop_srv_;
   rclcpp::TimerBase::SharedPtr timer_;
 
@@ -261,13 +245,12 @@ private:
   int clamp_flap_min_, clamp_flap_max_; // Flap clamping range
 
   // Wing state variables
-  double omega_m_;
-  double A_m_;
-  double A_d_;
-  double alpha_d_;
+  double wing_freq_;
+  double wing_amp_;
+  double wing_diff_;
   // Flap state variables (using the new two-topic approach)
-  double theta_m_;
-  double theta_d_;
+  double flap_same_;
+  double flap_dif_;
 
   // Publishing enabled flag controlled via service call
   bool publishing_enabled_;

@@ -9,7 +9,7 @@ In order to run and test the results obtained in your own computer just update *
 > The software needed is:
 > - Docker desktop
 > - an X-server application like vxc...
-> - VS-code with docker and remote desktop plugins
+> - VS-code with *docker* and *remote development* plugins
 >
 > For MAC more steps might be necessary for the x-server to work correctly 
 
@@ -28,6 +28,7 @@ Following is a description of the rover's hardware and connections followed by a
 - 2 raspberry-pi CAM3
 
 ## Connections:
+![Connections](images/Connections.png)
 
 ## Software:
 The code is structured in two parts: 
@@ -39,3 +40,5 @@ The Logic of the control is inspired from the structure of the human brain from 
 ![structure of the main code](images/main_code_structure.png)
 
  in order to structure the programs made based on the function they produce
+
+Then all the right functions are started from launch files inside each package and different launch files are called in the more general package **maui**
