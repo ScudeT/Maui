@@ -11,8 +11,8 @@ services:
       - XAUTHORITY=/home/ros/.Xauthority
       - QT_X11_NO_MITSHM=1  # Avoids potential issues with shared memory
     volumes:
-      - "/home/ray/project_manta/ros2_ws/src:/home/ros/ros2_ws/src" 
-      - "/home/ray/project_manta/ros2_ws/bags:/home/ros/ros2_ws/bags" 
+      - "/home/maui/Maui/ros2_ws/src:/home/ros/ros2_ws/src" 
+      - "/home/maui/Maui/ros2_ws/bags:/home/ros/ros2_ws/bags" 
       - /tmp/.X11-unix:/tmp/.X11-unix  # Mounts the X11 socket
       - $HOME/.Xauthority:/home/ros/.Xauthority  # Mounts your .Xauthority file
       - /dev:/dev  # Access devices
