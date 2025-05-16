@@ -68,13 +68,14 @@ RUN apt-get update && apt-get install -y \
     gpsd \
     gpsd-clients \
     minicom \ 
-    python3-libgpiod
+    python3-libgpiod \
+    gpiod
 
 
 # allow pip to install packages without the need for a virtual environment
 ARG PIP_BREAK_SYSTEM_PACKAGES=1 
 
-RUN pip install gpsd-py3
+RUN pip install gpsd-py3 opencv-python
 
 #######################################
 

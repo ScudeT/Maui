@@ -248,6 +248,7 @@ private:
   double wing_freq_;
   double wing_amp_;
   double wing_diff_;
+  
   // Flap state variables (using the new two-topic approach)
   double flap_same_;
   double flap_dif_;

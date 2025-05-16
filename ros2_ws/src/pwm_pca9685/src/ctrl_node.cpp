@@ -48,8 +48,8 @@ public:
       pwm_min_ = pwm_range[0];
       pwm_max_ = pwm_range[1];
     } else {
-      pwm_min_ = 21500;
-      pwm_max_ = 51500;
+      pwm_min_ = 15000;
+      pwm_max_ = 40000;
     }
 
     auto start_wing = this->get_parameter("start_wing").as_double_array();

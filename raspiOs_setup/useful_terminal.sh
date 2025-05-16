@@ -11,8 +11,8 @@ docker ps -a                        # list all containers
 docker images -a                    # list images
 docker volume ls                    # list volumes
 docker network ls                   # list networks
-docker start ros_jazzy              # start container ros_jazzy
-docker exec -it ros_jazzy /entrypoint.sh  # enter container
+docker start maui_jazzy              # start container ros_jazzy
+docker exec -it maui_jazzy /entrypoint.sh  # enter container
 
 ## groups and users ##
 getent group i2c # get the numeric group ID (GID) of the i2c group
@@ -81,5 +81,6 @@ ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 odom base_link
 docker start ros_jazzy 
 docker exec -it ros_jazzy /entrypoint.sh  # enter container
 ros2 run arduino_comm ardu_i2c_wave_node
-ros2 topic pub /ardu_data std_msgs/msg/Float32MultiArray '{data: [1.0, 0.0, 0.0, 0.0, 0.0]}'
-ros2 topic pub /ardu_data std_msgs/msg/Float32MultiArray '{data: [1.0, 45.0, 45.0, 0.0, 0.0]}'
+ros2 topic pub /command std_msgs/msg/Int32MultiArray '{data: [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,27500, 27500, 27500, 27500]}'
+ros2 topic pub /command std_msgs/msg/Int32MultiArray '{data: [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, -1, -1, -1]}'
+ros2 topic pub /theta_m std_msgs/msg/Float32 '{data: 30.0}'

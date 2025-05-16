@@ -1,6 +1,9 @@
 sudo apt update 
 sudo apt -y upgrade
 
+sudo raspi-config
+# enable i2c and serial conection in interface options
+
 # setup ssh
 sudo apt-get install -y openssh-client
 sudo apt-get install -y openssh-server
@@ -24,8 +27,6 @@ sudo apt-get update
 # install docker
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-export DISPLAY=:0
-echo "export DISPLAY=:0" >> ~/.bashrc
 xhost +local:docker
 sudo usermod -aG docker $USER
 
@@ -37,7 +38,7 @@ git config --global user.email "tommaso.scudeletti@mail.polimi.it"
 git config --global user.name "ScudeT"
 
 cd
-git clone https://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@github.com/ScudeT/project_manta.git
+git clone https://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@github.com/ScudeT/Maui.git
 
 #### configure gpsd ######
 sudo apt-get update
@@ -49,4 +50,10 @@ sudo nano /etc/default/gpsd
 # DEVICES="/dev/ttyUSB0"
 # GPSD_OPTIONS="-n"
 
+echo "cd Maui" >> /home/${USERNAME}/.bashrc
+cd Maui/docker/raspi_ros2
+docker compose up -d
 
+
+### CAMERA SETUP ####
+pip3 install opencv-python flask picamera2 --break-system-packages
