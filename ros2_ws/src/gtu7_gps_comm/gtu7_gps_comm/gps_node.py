@@ -9,47 +9,49 @@ class GpsPublisher(Node):
         super().__init__('gps_publisher')
         self.publisher_ = self.create_publisher(NavSatFix, 'gps_data', 10)
 
-        # Declare a parameter for frequency (Hz) with a default value of 2.0 Hz
+        # Frequency parameter
         self.declare_parameter('freq', 1.0)
         freq = self.get_parameter('freq').value
+        period = 1.0 / freq if freq > 0 else 1.0
 
-        # Compute the timer period as 1 / frequency
-        period = 1.0 / freq if freq > 0 else 0.5
-
-        # Initialize gpsd session
+        # Connect to gpsd (adjust host/port if needed)
         gpsd.connect()
 
-        # Create a timer with the computed period
         self.timer = self.create_timer(period, self.publish_gps_data)
 
     def publish_gps_data(self):
-        # Get GPS data
-        gps_data = gpsd.get_current()
+        try:
+            gps_data = gpsd.get_current()
+        except UserWarning:
+            self.get_logger().warn('GPS not active (no fix yet).')
+            return
 
-        # Check if the GPS data has a valid fix
+        if getattr(gps_data, 'mode', 0) < 2:
+            self.get_logger().warn(f'GPS fix still not valid (mode={gps_data.mode}).')
+            return
+
         msg = NavSatFix()
-
         msg.header.frame_id = "gps_link"
         msg.header.stamp = self.get_clock().now().to_msg()
-            
         msg.latitude = gps_data.lat
         msg.longitude = gps_data.lon
         msg.altitude = gps_data.alt
 
-            # Log and publish the message
-        self.get_logger().info(f"Publishing GPS data: {msg.latitude}, {msg.longitude}, {msg.altitude}")
+        self.get_logger().info(
+            f"Publishing GPS data: {msg.latitude:.6f}, {msg.longitude:.6f}, {msg.altitude:.2f}"
+        )
         self.publisher_.publish(msg)
 
 def main(args=None):
     rclpy.init(args=args)
-    gps_publisher = GpsPublisher()
-    
+    node = GpsPublisher()
+
     try:
-        rclpy.spin(gps_publisher)
+        rclpy.spin(node)
     except KeyboardInterrupt:
         pass
 
-    gps_publisher.destroy_node()
+    node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
