@@ -48,7 +48,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-		    'camera_client_test = occipital_lobe.camera_client_test:main',
+		    'camera_client_node = occipital_lobe.camera_client_node:main',
         ],
     },
 )
