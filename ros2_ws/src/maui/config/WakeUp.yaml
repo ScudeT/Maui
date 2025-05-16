@@ -1,13 +1,11 @@
 
-
-
 ctrl:
   ros__parameters:
     freq: 30
     angle_range: [-60, 60]
     pwm_range: [21500, 51500]
     
-    start_wing: [1.0, 20.0, 0.0, 0.0] # | omega_m | A_m | A_d | alpha_d |
+    start_wing: [0.5, 20.0, 0.0, 0.0] # | omega_m | A_m | A_d | alpha_d |
     start_flap: [0.0, 0.0]           # | theta_m | theta_d |
 
     clamp_flap: [-40, 40]
