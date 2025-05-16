@@ -40,7 +40,7 @@ class StereoCameraClient(Node):
             f"StereoCameraClient started: calling {self.api_url} at {self.freq} Hz"
         )
 
-    def capture_and_publish(self):
+        def capture_and_publish(self):
         with self.lock:
             try:
                 resp = requests.get(self.api_url, timeout=1.0)
@@ -57,7 +57,7 @@ class StereoCameraClient(Node):
                     self.get_logger().error(f"No '{key}' in API response")
                     continue
 
-                # decode base64 to bytes, then JPEG to cv2 image
+                # decode JPEG
                 jpg = base64.b64decode(b64)
                 arr = np.frombuffer(jpg, np.uint8)
                 img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
@@ -65,10 +65,11 @@ class StereoCameraClient(Node):
                     self.get_logger().error(f"Failed to decode {key}")
                     continue
 
-                # convert to ROS Image message
-                msg = self.bridge.cv2_to_imgmsg(img, encoding='bgr8')
+                # convert BGR→RGB and publish as rgb8
+                img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                msg = self.bridge.cv2_to_imgmsg(img_rgb, encoding='rgb8')
                 msg.header.stamp = self.get_clock().now().to_msg()
-                msg.header.frame_id = key  # e.g. "camera1" or "camera2"
+                msg.header.frame_id = key
                 pub.publish(msg)
 
 
