@@ -65,7 +65,7 @@ def generate_launch_description():
     )
     
     # Add the hardware launch at the beginning
-    # ld.add_action(PNS_launch)
+    ld.add_action(PNS_launch)
 
     
     # ------ Start the Thalamus ---------- #
