@@ -1,0 +1,16 @@
+reflex:
+  ros__parameters:
+    service_names: [
+        '/record',
+      ]
+
+memory: 
+  ros__parameters: 
+    topics:
+      - '/button_state:std_msgs/msg/Bool'
+        
+    parent_folder: 'bags/'
+
+fatique:
+  ros__parameters:
+    timeout: 30.0

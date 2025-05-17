@@ -1,0 +1,50 @@
+
+command_test_node:
+  ros__parameters:
+    delay: 10.0
+    commands:
+      - "30.0,0.0,0.0,0.0,0.0,0.0:30.0,20.0,0.0,0.0,0.0,0.0"
+      - "30.0,0.0,0.0,0.0,0.0,0.0:30.0,0.0,10.0,0.0,0.0,0.0"
+      - "30.0,0.0,0.0,0.0,0.0,0.0:30.0,0.0,0.0,20.0,0.0,0.0"
+
+
+ctrl:
+  ros__parameters:
+    freq: 30
+    angle_range: [-60, 60]
+    pwm_range: [21500, 51500]
+    
+    start_wing: [1.0, 30.0, 0.0, 0.0] # | omega_m | A_m | A_d | alpha_d |
+    start_flap: [30.0, 0.0]           # | theta_m | theta_d |
+
+    clamp_flap: [-40, 40]
+
+reflex:
+  ros__parameters:
+    service_names: 
+      - '/record'
+      - '/start_and_stop'
+      - '/on_and_off'
+      
+
+memory:
+  ros__parameters:
+    topics:
+      - '/button_state:std_msgs/msg/Bool'
+      - '/command:std_msgs/msg/Int32MultiArray'
+      - '/omega_m:std_msgs/msg/Float32'
+      - '/A_m:std_msgs/msg/Float32'
+      - '/A_d:std_msgs/msg/Float32'
+      - '/alpha_d:std_msgs/msg/Float32'
+      - '/alpha_m:std_msgs/msg/Float32'
+      - '/theta_m:std_msgs/msg/Float32'
+      - '/theta_d:std_msgs/msg/Float32'
+      - '/imu/data:sensor_msgs/msg/Imu'
+      - '/gps_data:sensor_msgs/msg/NavSatFix'
+      - '/ms5837/pose:geometry_msgs/msg/PoseWithCovarianceStamped'
+      - '/odom:nav_msgs/msg/Odometry'
+    parent_folder: 'bags/control_test'
+
+fatique:
+  ros__parameters:
+    timeout: 30.0

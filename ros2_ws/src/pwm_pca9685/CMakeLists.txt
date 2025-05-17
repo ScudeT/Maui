@@ -52,20 +52,9 @@ ament_target_dependencies(pwm_wave_node
   std_msgs
 )
 
-add_executable(ctrl_node 
-  src/ctrl_node.cpp
-)
-
-ament_target_dependencies(ctrl_node
-  rclcpp
-  std_msgs
-  std_srvs
-)
-
 install(TARGETS 
   pca9685_node
   pwm_wave_node
-  ctrl_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

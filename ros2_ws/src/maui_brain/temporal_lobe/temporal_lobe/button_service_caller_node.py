@@ -14,10 +14,10 @@ class ButtonServiceCaller(Node):
         service_names_descriptor = ParameterDescriptor(type=ParameterType.PARAMETER_STRING_ARRAY)
         self.declare_parameter('service_names', ['/service_1'], descriptor=service_names_descriptor)
         self.service_names = self.get_parameter('service_names').value
-        self.get_logger().info(f"Configured service names: {self.service_names}")
+        self.get_logger().info(f"Configured  names: {self.service_names}")
 
         # Create a subscription to the "button_state" topic.
-        self.subscription = self.create_subscription(
+        self.subscription = self.create_subscription( 
             Bool,
             'button_state',
             self.button_callback,

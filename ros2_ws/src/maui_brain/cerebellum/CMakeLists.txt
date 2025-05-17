@@ -29,8 +29,12 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-add_executable(delayed_command_node src/delayed_command_node.cpp)
-ament_target_dependencies(delayed_command_node
+
+add_executable(ctrl_node 
+  src/ctrl_node.cpp
+)
+
+ament_target_dependencies(ctrl_node
   rclcpp
   std_msgs
   std_srvs
@@ -44,8 +48,10 @@ ament_target_dependencies(pid_node
   std_srvs
 )
 
+
+
 install(TARGETS
-  delayed_command_node
+ctrl_node
   pid_node
   DESTINATION lib/${PROJECT_NAME}
 )

@@ -12,42 +12,66 @@ from std_srvs.srv import Trigger
 class DynamicBagRecorder(Node):
     def __init__(self):
         super().__init__('dynamic_bag_recorder')
-        # Declare parameters with default values
-        self.declare_parameter('topics', ['/imu/data', '/gps_data', '/ms5837/pose'])
-        self.declare_parameter('topic_types', ['sensor_msgs/msg/Imu', 'sensor_msgs/msg/NavSatFix', 'geometry_msgs/msg/PoseWithCovarianceStamped'])
+
+        # Declare a single parameter where each entry is "topic:type"
+        self.declare_parameter(
+            'topics',
+            [
+                '/imu/data:sensor_msgs/msg/Imu',
+                '/gps_data:sensor_msgs/msg/NavSatFix',
+                '/ms5837/pose:geometry_msgs/msg/PoseWithCovarianceStamped',
+            ]
+        )
         self.declare_parameter('parent_folder', 'bags')
 
-        # Retrieve parameter values
-        self.topics = self.get_parameter('topics').value
-        self.topic_types = self.get_parameter('topic_types').value
+        # Retrieve the raw list of "topic:type" strings
+        raw_entries = self.get_parameter('topics').value
         self.parent_folder = self.get_parameter('parent_folder').value
 
-        # Check if topics and topic_types lists have the same length
+        # Parse them into two parallel lists
+        self.topics = []
+        self.topic_types = []
+        for spec in raw_entries:
+            try:
+                topic, type_str = spec.split(':', 1)
+            except ValueError:
+                self.get_logger().error(
+                    f"Invalid topic spec '{spec}'. "
+                    "Must be in the form '/topic:name:msg/Type'"
+                )
+                rclpy.shutdown()
+                return
+            self.topics.append(topic)
+            self.topic_types.append(type_str)
+
+        # Ensure counts match
         if len(self.topics) != len(self.topic_types):
-            self.get_logger().error("The number of topics and topic_types must be equal!")
+            self.get_logger().error(
+                "The number of topics and topic_types must be equal!"
+            )
             rclpy.shutdown()
             return
 
-        # Create subscriptions for each topic
+        # Create subscriptions
         self.subscriptions_ = []
         for topic, type_str in zip(self.topics, self.topic_types):
             msg_type = self.get_msg_type_from_str(type_str)
-            # Use a lambda with a default argument to capture the topic name
-            subscription = self.create_subscription(
+            sub = self.create_subscription(
                 msg_type,
                 topic,
                 lambda msg, t=topic: self.topic_callback(msg, t),
                 10
             )
-            self.subscriptions_.append(subscription)
+            self.subscriptions_.append(sub)
 
-        # Recording is off by default; writer will be created when recording starts.
+        # Recording off by default
         self.recording = False
         self.writer = None
 
-        # Create the Trigger service to toggle recording
+        # Trigger service
         self.srv = self.create_service(Trigger, '/record', self.toggle_recording_callback)
         self.get_logger().info("DynamicBagRecorder started with recording OFF.")
+
 
     def get_msg_type_from_str(self, type_str: str):
         """

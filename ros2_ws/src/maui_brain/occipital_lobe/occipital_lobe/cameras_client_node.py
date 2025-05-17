@@ -40,7 +40,7 @@ class StereoCameraClient(Node):
             f"StereoCameraClient started: calling {self.api_url} at {self.freq} Hz"
         )
 
-        def capture_and_publish(self):
+    def capture_and_publish(self):
         with self.lock:
             try:
                 resp = requests.get(self.api_url, timeout=1.0)

@@ -42,3 +42,11 @@ The Logic of the control is inspired from the structure of the human brain from 
  in order to structure the programs made based on the function they produce
 
 Then all the right functions are started from launch files inside each package and different launch files are called in the more general package **maui**
+
+> **Manta Connection**
+>
+> *hotspot_name:* maui-wifi
+>
+> *hotspot_password:* maui-wifi 
+>
+
