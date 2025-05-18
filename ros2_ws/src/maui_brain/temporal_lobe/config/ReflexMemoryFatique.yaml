@@ -1,8 +1,8 @@
 reflex:
   ros__parameters:
-    service_names: [
-        '/record',
-      ]
+    service_names: 
+      - '/record'
+      - '/fatique'
 
 memory: 
   ros__parameters: 
@@ -13,4 +13,4 @@ memory:
 
 fatique:
   ros__parameters:
-    timeout: 30.0
+    time_out: 10.0

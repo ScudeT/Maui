@@ -84,4 +84,4 @@ ros2 run arduino_comm ardu_i2c_wave_node
 ros2 topic pub /command std_msgs/msg/Int32MultiArray '{data: [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,27500, 27500, 27500, 27500]}'
 ros2 topic pub /command std_msgs/msg/Int32MultiArray '{data: [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, -1, -1, -1]}'
 ros2 topic pub /command std_msgs/msg/Int32MultiArray '{data: [0,0,0,0,0,0,0,0,0,0,0,0,0, 0, 0, 0]}'
-ros2 topic pub /theta_m std_msgs/msg/Float32 '{data: 30.0}'
+ros2 topic pub /button_state std_msgs/msg/Bool '{data: True}'

@@ -1,7 +1,7 @@
 
 command_test_node:
   ros__parameters:
-    delay: 10.0
+    delay: 5.0
     commands:
       - "30.0,0.0,0.0,0.0,0.0,0.0:30.0,20.0,0.0,0.0,0.0,0.0"
       - "30.0,0.0,0.0,0.0,0.0,0.0:30.0,0.0,10.0,0.0,0.0,0.0"
@@ -25,6 +25,7 @@ reflex:
       - '/record'
       - '/start_and_stop'
       - '/on_and_off'
+      - '/fatique'
       
 
 memory:
@@ -47,4 +48,4 @@ memory:
 
 fatique:
   ros__parameters:
-    timeout: 30.0
+    time_out: 20.0

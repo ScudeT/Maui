@@ -63,12 +63,14 @@ def generate_launch_description():
     fatique = Node(
         package='temporal_lobe',
         executable='button_timeout_node',
-        name='timeout',
+        name='fatique',
         output='screen',
         parameters=[config_file],
         arguments=['--ros-args', '--log-level', 'WARN'],
         remappings=[
             ('/button_state', '/button_state'),
+
+            ('/trigger', '/fatique'),
         ]
     )
 

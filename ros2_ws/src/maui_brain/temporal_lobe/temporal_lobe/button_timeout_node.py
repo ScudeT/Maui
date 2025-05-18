@@ -1,80 +1,68 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool
+from std_srvs.srv import Trigger
 
-class DebounceNode(Node):
+
+class ToggleButtonNode(Node):
     def __init__(self):
-        super().__init__('debounce_node')
-        
-        # Declare and read the 'timeout' parameter (default: 5.0 seconds)
-        self.declare_parameter('timeout', 10.0)
-        self.timeout = self.get_parameter('timeout').value
-        self.get_logger().info(f"Timeout set to {self.timeout} seconds.")
+        super().__init__('toggle_button_node')
+        # Declare and read the timeout parameter (in seconds)
+        self.declare_parameter('time_out', 30.0)
+        self.time_out = self.get_parameter('time_out').get_parameter_value().double_value
 
-        # Using a single topic for both input and output.
-        topic_name = 'button_state'
-        
-        # Create the subscriber to the shared topic.
-        self.subscription = self.create_subscription(
-            Bool,
-            topic_name,
-            self.input_callback,
-            10)
-        
-        # Create the publisher for the same shared topic.
-        self.publisher_ = self.create_publisher(Bool, topic_name, 10)
-        
-        # Timer to delay publishing True if no further external True arrives.
-        self.timer = None
-        
-        # Record the time when a True message is published by this node.
-        self.last_publish_time = None
-        
-        # Threshold (in seconds) to consider a received True as our own published message.
-        self.own_pub_threshold = 0.1
+        # Publisher for the button_state topic
+        self.publisher_ = self.create_publisher(Bool, 'button_state', 10)
+        # Service to toggle the node on/off
+        self.srv = self.create_service(Trigger, 'trigger', self.trigger_callback)
 
-    def input_callback(self, msg: Bool):
-        current_time = self.get_clock().now().nanoseconds * 1e-9  # Convert nanoseconds to seconds
-        
-        if msg.data:
-            # Check if this True message is likely our own publication.
-            if self.last_publish_time is not None and (current_time - self.last_publish_time < self.own_pub_threshold):
-                self.get_logger().debug("Ignoring self-published True message.")
-                return
+        # Internal state
+        self.is_on = False
+        self._timer = None
 
-            self.get_logger().info("Received external True message.")
-            
-            # If a timer is already running (from a previous external True), cancel it.
-            if self.timer is not None:
-                self.timer.cancel()
-            
-            # Start a new one-shot timer with the timeout parameter.
-            self.timer = self.create_timer(self.timeout, self.timer_callback)
+    def trigger_callback(self, request, response):
+        if not self.is_on:
+            self.get_logger().info('Turning ON. Will publish after {:.1f}s'.format(self.time_out))
+            self.is_on = True
+            # Schedule a one-shot timer
+            self._timer = self.create_timer(self.time_out, self._timeout_callback)
+            response.success = True
+            response.message = f'Activated: will publish in {self.time_out} seconds.'
         else:
-            self.get_logger().info("Received False message; no action taken.")
+            self.get_logger().info('Turning OFF. Cancelling pending publish.')
+            self.is_on = False
+            # Cancel the pending timer if it exists
+            if self._timer:
+                self._timer.cancel()
+                self._timer = None
+            response.success = True
+            response.message = 'Deactivated: pending publish cancelled.'
+        return response
 
-    def timer_callback(self):
-        self.get_logger().info("Timeout expired without a new external True. Publishing True.")
-        out_msg = Bool(data=True)
-        self.publisher_.publish(out_msg)
-        
-        # Record the publication time to filter out our own message later.
-        self.last_publish_time = self.get_clock().now().nanoseconds * 1e-9
-        
-        # Stop the timer; we only publish once per external True sequence.
-        self.timer.cancel()
-        self.timer = None
+    def _timeout_callback(self):
+        # Only publish if still on
+        if self.is_on:
+            msg = Bool()
+            msg.data = True
+            self.publisher_.publish(msg)
+            self.get_logger().info('Published True on button_state')
+        # Clean up: one-shot behavior and reset state
+        if self._timer:
+            self._timer.cancel()
+            self._timer = None
+
 
 def main(args=None):
     rclpy.init(args=args)
-    node = DebounceNode()
+    node = ToggleButtonNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
-        node.get_logger().info("Keyboard interrupt, shutting down.")
+        pass
     finally:
         node.destroy_node()
         rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()
