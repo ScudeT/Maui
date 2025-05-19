@@ -85,3 +85,11 @@ ros2 topic pub /command std_msgs/msg/Int32MultiArray '{data: [-1,-1,-1,-1,-1,-1,
 ros2 topic pub /command std_msgs/msg/Int32MultiArray '{data: [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, -1, -1, -1]}'
 ros2 topic pub /command std_msgs/msg/Int32MultiArray '{data: [0,0,0,0,0,0,0,0,0,0,0,0,0, 0, 0, 0]}'
 ros2 topic pub /button_state std_msgs/msg/Bool '{data: True}'
+
+
+ros2 run pwm_pca9685 pwm_wave_node \
+  --ros-args \
+    -p addresses:="[15]" \
+    -p center:=31500 \
+    -p amplitude:=12000 \
+    -p wave_freq:=0.3

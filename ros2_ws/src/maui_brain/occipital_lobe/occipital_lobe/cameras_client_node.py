@@ -1,81 +1,80 @@
-#!/usr/bin/env python3
-import base64
-import threading
-
-import cv2
-import numpy as np
-import requests
-
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
+import requests
+import cv2
+import numpy as np
 
-
-class StereoCameraClient(Node):
+class DualCameraClientNode(Node):
     def __init__(self):
-        super().__init__('stereo_camera_client')
+        super().__init__('dual_camera_client')
 
-        # declare & read parameters
-        self.declare_parameter('api_url', 'http://localhost:5000/capture')
-        self.declare_parameter('frequency', 10.0)  # Hz
-        self.api_url = self.get_parameter('api_url').value
-        self.freq = float(self.get_parameter('frequency').value)
+        # Declare and get parameter for capture frequency (Hz)
+        self.declare_parameter('capture_frequency', 10.0)
+        freq = self.get_parameter('capture_frequency').value
+        self.get_logger().info(f"Capture frequency set to {freq} Hz")
 
-        # publishers
-        self.left_pub = self.create_publisher(Image, '/left_camera', 10)
-        self.right_pub = self.create_publisher(Image, '/right_camera', 10)
+        # Publishers for each camera
+        self.pub_cam1 = self.create_publisher(Image, '/camera/1', 10)
+        self.pub_cam2 = self.create_publisher(Image, '/camera/2', 10)
 
-        # helper for conversions
         self.bridge = CvBridge()
 
-        # timer to call API periodically
-        period = 1.0 / self.freq
-        self.timer = self.create_timer(period, self.capture_and_publish)
+        # Timer period based on frequency
+        timer_period = 1.0 / freq
+        self.timer = self.create_timer(timer_period, self.timer_callback)
 
-        # lock to protect concurrent calls (just in case)
-        self.lock = threading.Lock()
+        # URLs of the capture service
+        self.url_cam1 = 'http://0.0.0.0:5000/capture/cam1'
+        self.url_cam2 = 'http://0.0.0.0:5000/capture/cam2'
 
-        self.get_logger().info(
-            f"StereoCameraClient started: calling {self.api_url} at {self.freq} Hz"
-        )
+    def timer_callback(self):
+        try:
+            # Fetch raw JPEG bytes for camera 1
+            resp1 = requests.get(self.url_cam1, timeout=1.0)
+            resp1.raise_for_status()
+            img_bytes1 = resp1.content
 
-    def capture_and_publish(self):
-        with self.lock:
-            try:
-                resp = requests.get(self.api_url, timeout=1.0)
-                resp.raise_for_status()
-                data = resp.json()
-            except Exception as e:
-                self.get_logger().error(f"API call failed: {e}")
+            # Decode JPEG bytes to OpenCV image (BGR)
+            np_arr1 = np.frombuffer(img_bytes1, np.uint8)
+            cv_img1 = cv2.imdecode(np_arr1, cv2.IMREAD_COLOR)
+            if cv_img1 is None:
+                self.get_logger().error("Failed to decode image from camera 1")
                 return
 
-            for key, pub in (('camera1', self.left_pub),
-                             ('camera2', self.right_pub)):
-                b64 = data.get(key, None)
-                if b64 is None:
-                    self.get_logger().error(f"No '{key}' in API response")
-                    continue
+            # Fetch raw JPEG bytes for camera 2
+            resp2 = requests.get(self.url_cam2, timeout=1.0)
+            resp2.raise_for_status()
+            img_bytes2 = resp2.content
 
-                # decode JPEG
-                jpg = base64.b64decode(b64)
-                arr = np.frombuffer(jpg, np.uint8)
-                img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
-                if img is None:
-                    self.get_logger().error(f"Failed to decode {key}")
-                    continue
+            np_arr2 = np.frombuffer(img_bytes2, np.uint8)
+            cv_img2 = cv2.imdecode(np_arr2, cv2.IMREAD_COLOR)
+            if cv_img2 is None:
+                self.get_logger().error("Failed to decode image from camera 2")
+                return
 
-                # convert BGR→RGB and publish as rgb8
-                img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                msg = self.bridge.cv2_to_imgmsg(img_rgb, encoding='rgb8')
-                msg.header.stamp = self.get_clock().now().to_msg()
-                msg.header.frame_id = key
-                pub.publish(msg)
+            # Convert to ROS Image messages
+            ros_img1 = self.bridge.cv2_to_imgmsg(cv_img1, encoding='bgr8')
+            ros_img1.header.stamp = self.get_clock().now().to_msg()
+            ros_img1.header.frame_id = 'camera_1'
 
+            ros_img2 = self.bridge.cv2_to_imgmsg(cv_img2, encoding='bgr8')
+            ros_img2.header.stamp = self.get_clock().now().to_msg()
+            ros_img2.header.frame_id = 'camera_2'
+
+            # Publish images
+            self.pub_cam1.publish(ros_img1)
+            self.pub_cam2.publish(ros_img2)
+
+            self.get_logger().debug("Published images from both cameras")
+
+        except Exception as e:
+            self.get_logger().error(f"Exception during image fetch or publish: {e}")
 
 def main(args=None):
     rclpy.init(args=args)
-    node = StereoCameraClient()
+    node = DualCameraClientNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
@@ -83,7 +82,6 @@ def main(args=None):
     finally:
         node.destroy_node()
         rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()
