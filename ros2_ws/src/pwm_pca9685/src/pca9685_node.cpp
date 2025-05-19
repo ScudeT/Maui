@@ -1,39 +1,39 @@
 #include "rclcpp/rclcpp.hpp"
-#include "pwm_pca9685/pca9685_activity.h"
+#include "pwm_pca9685/pca9685.hpp"
+#include "std_msgs/msg/int32_multi_array.hpp"
 
-int main(int argc, char *argv[])
-{
-  rclcpp::init(argc, argv);
-  
-  // Create node and activity instance in a local scope.
-  auto node = rclcpp::Node::make_shared("pca9685_node");
-  auto activity = std::make_shared<pwm_pca9685::PCA9685Activity>(node);
-
-  if (!activity->start()) {
-    RCLCPP_ERROR(node->get_logger(), "Failed to start activity");
-    rclcpp::shutdown();
-    return -4;
+class PcaNode : public rclcpp::Node {
+public:
+  PcaNode()
+  : Node("pca9685_node"),
+    pca_(get_logger(), "/dev/i2c-1", 0x40, 1000)
+  {
+    if (!pca_.begin()) {
+      RCLCPP_FATAL(get_logger(), "Failed to initialize PCA9685");
+      rclcpp::shutdown();
+      return;
+    }
+    sub_ = create_subscription<std_msgs::msg::Int32MultiArray>(
+      "command", 10,
+      [this](auto msg) {
+        if (msg->data.size() != 16) {
+          RCLCPP_ERROR(get_logger(), "Expected 16 values, got %zu", msg->data.size());
+          return;
+        }
+        for (size_t ch = 0; ch < 16; ++ch) {
+          pca_.setDutyCycle(ch, static_cast<uint16_t>(msg->data[ch]));
+        }
+      });
   }
 
-  // Create a timer that calls spinOnce() at 100 Hz (every 10ms)
-  // Declare the 'freq' parameter with a default value (e.g., 100 Hz)
-  int freq = node->declare_parameter("freq", 100);
-  // Compute the timer period in milliseconds: period = 1000/freq
-  auto timer_period = std::chrono::milliseconds(1000 / freq);
+private:
+  pwm_pca9685::PCA9685 pca_;
+  rclcpp::Subscription<std_msgs::msg::Int32MultiArray>::SharedPtr sub_;
+};
 
-  auto timer = node->create_wall_timer(
-    timer_period,
-    [&]() {
-      activity->spinOnce();
-    }
-  );
-
-  // Use rclcpp::spin to process callbacks (including the timer)
-  rclcpp::spin(node);
-
-  // When rclcpp::spin returns (e.g. due to SIGINT), cleanly stop the activity
-  activity->stop();
-  
+int main(int argc, char **argv) {
+  rclcpp::init(argc, argv);
+  rclcpp::spin(std::make_shared<PcaNode>());
   rclcpp::shutdown();
   return 0;
 }
