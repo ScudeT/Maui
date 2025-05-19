@@ -24,7 +24,7 @@ public:
     // Declare parameters with default values
     this->declare_parameter<int>("freq", 30);
     this->declare_parameter<std::vector<int>>("angle_range", std::vector<int>{-60, 60});
-    this->declare_parameter<std::vector<int>>("pwm_range", std::vector<int>{15000, 40000});
+    this->declare_parameter<std::vector<int>>("pwm_range", std::vector<int>{21500, 51500});
     this->declare_parameter<std::vector<double>>("start_wing", std::vector<double>{1.0, 0.0, 0.0, 0.0, 0.0});
     // start_flap now holds the starting values for flap_same and flap_dif
     this->declare_parameter<std::vector<double>>("start_flap", std::vector<double>{0.0, 0.0});
@@ -48,8 +48,8 @@ public:
       pwm_min_ = pwm_range[0];
       pwm_max_ = pwm_range[1];
     } else {
-      pwm_min_ = 15000;
-      pwm_max_ = 40000;
+      pwm_min_ = 21500;
+      pwm_max_ = 51500;
     }
 
     auto start_wing = this->get_parameter("start_wing").as_double_array();
