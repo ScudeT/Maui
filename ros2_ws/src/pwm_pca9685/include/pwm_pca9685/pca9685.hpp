@@ -11,6 +11,8 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 
+
+
 namespace pwm_pca9685 {
 
 static constexpr uint8_t DEFAULT_ADDRESS = 0x40;
@@ -23,6 +25,25 @@ static constexpr int MAX_RETRIES        = 3;
 static constexpr int RETRY_DELAY_MS     = 10;
 static constexpr double OSC_CLOCK_HZ    = 25e6;
 static constexpr uint16_t PWM_RESOLUTION = 4096;
+
+static constexpr int I2C_SMBUS_READ  = 1;
+static constexpr int I2C_SMBUS_WRITE = 0;
+
+static constexpr int I2C_SMBUS_QUICK             = 0;
+static constexpr int I2C_SMBUS_BYTE              = 1;
+static constexpr int I2C_SMBUS_BYTE_DATA         = 2;
+static constexpr int I2C_SMBUS_WORD_DATA         = 3;
+static constexpr int I2C_SMBUS_PROC_CALL         = 4;
+static constexpr int I2C_SMBUS_BLOCK_DATA        = 5;
+static constexpr int I2C_SMBUS_I2C_BLOCK_BROKEN  = 6;
+static constexpr int I2C_SMBUS_BLOCK_PROC_CALL   = 7;           /* SMBus 2.0 */
+static constexpr int I2C_SMBUS_I2C_BLOCK_DATA    = 8;
+
+/*
+ * Data for SMBus Messages
+ */
+static constexpr int I2C_SMBUS_BLOCK_MAX     = 32;      /* As specified in SMBus standard */
+static constexpr int I2C_SMBUS_I2C_BLOCK_MAX = 32;      /* Not specified but we use same structure */
 
 // --- minimal SMBus routines (from smbus_functions.h) ---
 union i2c_smbus_data {

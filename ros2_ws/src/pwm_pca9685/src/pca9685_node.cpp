@@ -1,6 +1,7 @@
-#include "rclcpp/rclcpp.hpp"
+// pca9685_node.cpp
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/int32_multi_array.hpp>
 #include "pwm_pca9685/pca9685.hpp"
-#include "std_msgs/msg/int32_multi_array.hpp"
 
 class PcaNode : public rclcpp::Node {
 public:
@@ -13,22 +14,32 @@ public:
       rclcpp::shutdown();
       return;
     }
-    sub_ = create_subscription<std_msgs::msg::Int32MultiArray>(
-      "command", 10,
-      [this](auto msg) {
-        if (msg->data.size() != 16) {
-          RCLCPP_ERROR(get_logger(), "Expected 16 values, got %zu", msg->data.size());
-          return;
-        }
-        for (size_t ch = 0; ch < 16; ++ch) {
-          pca_.setDutyCycle(ch, static_cast<uint16_t>(msg->data[ch]));
-        }
-      });
+
+    // Bind the member function as the callback
+    subscription_ = create_subscription<std_msgs::msg::Int32MultiArray>(
+      "command",
+      rclcpp::QoS(10),
+      std::bind(&PcaNode::commandCallback, this, std::placeholders::_1));
   }
 
 private:
+  // Separate callback function
+  void commandCallback(const std_msgs::msg::Int32MultiArray::ConstSharedPtr msg)
+  {
+    if (msg->data.size() != 16) {
+      RCLCPP_ERROR(get_logger(),
+                   "Expected 16 values, got %zu", msg->data.size());
+      return;
+    }
+    for (size_t i = 0; i < 16; ++i) {
+      pca_.setDutyCycle(
+        static_cast<uint8_t>(i),
+        static_cast<uint16_t>(msg->data[i]));
+    }
+  }
+
   pwm_pca9685::PCA9685 pca_;
-  rclcpp::Subscription<std_msgs::msg::Int32MultiArray>::SharedPtr sub_;
+  rclcpp::Subscription<std_msgs::msg::Int32MultiArray>::SharedPtr subscription_;
 };
 
 int main(int argc, char **argv) {
