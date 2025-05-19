@@ -226,8 +226,8 @@ private:
     // double left_flap_angle  = theta_d_ - theta_m_;
     // double right_flap_angle = theta_d_ + theta_m_;
 
-    double left_flap_angle  = + theta_m_ - std::max(0.0, theta_d_);
-    double right_flap_angle = - theta_m_ - std::min(0.0, theta_d_);
+    double left_flap_angle  = + theta_m_ - std::min(+ theta_m_, theta_d_);
+    double right_flap_angle = - theta_m_ - std::min(- theta_m_, theta_d_);
 
     // Map computed angles to PWM values
     int32_t left_wing_pwm  = mapAngleToPWM(left_wing_angle);
