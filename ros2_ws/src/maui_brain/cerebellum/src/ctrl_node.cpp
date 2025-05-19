@@ -25,7 +25,7 @@ public:
     this->declare_parameter<int>("freq", 30);
     this->declare_parameter<std::vector<int>>("angle_range", std::vector<int>{-60, 60});
     this->declare_parameter<std::vector<int>>("pwm_range", std::vector<int>{15000, 40000});
-    this->declare_parameter<std::vector<double>>("start_wing", std::vector<double>{1.0, 60.0, 0.0, 0.0});
+    this->declare_parameter<std::vector<double>>("start_wing", std::vector<double>{1.0, 0.0, 0.0, 0.0, 0.0});
     // start_flap now holds the starting values for flap_same and flap_dif
     this->declare_parameter<std::vector<double>>("start_flap", std::vector<double>{0.0, 0.0});
     // New parameter for clamping flap angles
@@ -57,11 +57,13 @@ public:
       omega_m_ = start_wing[0];
       A_m_  = start_wing[1];
       A_d_ = start_wing[2];
+      alpha_m_ = start_wing[3];
       alpha_d_ = start_wing[3];
     } else {
       omega_m_ = 1.0;
       A_m_  = 0.0;
       A_d_ = 0.0;
+      alpha_m_ = 0.0;
       alpha_d_ = 0.0;
     }
 
@@ -93,6 +95,8 @@ public:
       "/A_m", 10, std::bind(&CommandPublisher::AmCallback, this, _1));
     A_d_sub_ = this->create_subscription<std_msgs::msg::Float32>(
       "/A_d", 10, std::bind(&CommandPublisher::AdCallback, this, _1));
+    alpha_m_sub_ = this->create_subscription<std_msgs::msg::Float32>(
+      "/alpha_m", 10, std::bind(&CommandPublisher::alphaMCallback, this, _1));
     alpha_d_sub_ = this->create_subscription<std_msgs::msg::Float32>(
       "/alpha_d", 10, std::bind(&CommandPublisher::alphaDCallback, this, _1));
 
@@ -139,6 +143,11 @@ private:
     A_d_ = msg->data;
   }
 
+  void alphaMCallback(const std_msgs::msg::Float32::SharedPtr msg)
+  {
+    alpha_m_ = msg->data;
+  }
+
   void alphaDCallback(const std_msgs::msg::Float32::SharedPtr msg)
   {
     alpha_d_ = msg->data;
@@ -165,6 +174,9 @@ private:
       response->message = "Publishing started.";
     } else {
       response->message = "Publishing stopped.";
+      std_msgs::msg::Int32MultiArray command_msg;
+      command_msg.data.resize(16, -1);
+      command_pub_->publish(command_msg);
     }
     response->success = true;
     RCLCPP_INFO(this->get_logger(), "%s", response->message.c_str());
@@ -203,20 +215,19 @@ private:
     double t = (current_time - start_time_).seconds();
 
     // Compute the wing motion using a sine function.
-    double half_amp = A_m_ / 2.0;
     double sine_val = sin(2 * M_PI * omega_m_ * t);
 
     // Differential adjustment for the wings:
-    double left_wing_angle  = (half_amp - A_d_ / 2.0) * sine_val + std::max(0.0, alpha_d_);
-    double right_wing_angle = - (half_amp + A_d_ / 2.0) * sine_val - std::min(0.0, alpha_d_);
+    double left_wing_angle  = (A_m_ - A_d_) * sine_val + alpha_m_ - alpha_d_;
+    double right_wing_angle = - (A_m_ + A_d_) * sine_val - alpha_d_ - alpha_d_;
 
     // Compute flap angles:
     // flap_dif is added to both, while flap_same is added to the left and subtracted from the right.
     // double left_flap_angle  = theta_d_ - theta_m_;
     // double right_flap_angle = theta_d_ + theta_m_;
 
-    double left_flap_angle  = std::max(0.0, theta_d_) - theta_m_;
-    double right_flap_angle = std::min(0.0, theta_d_) + theta_m_;
+    double left_flap_angle  = + theta_m_ - std::max(0.0, theta_d_);
+    double right_flap_angle = - theta_m_ - std::min(0.0, theta_d_);
 
     // Map computed angles to PWM values
     int32_t left_wing_pwm  = mapAngleToPWM(left_wing_angle);
@@ -247,6 +258,7 @@ private:
   rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr omega_m_sub_;
   rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr A_m_sub_;
   rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr A_d_sub_;
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr alpha_m_sub_;
   rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr alpha_d_sub_;
 
   rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr theta_m_sub_;
@@ -265,6 +277,7 @@ private:
   double A_m_;
   double A_d_;
   double alpha_d_;
+  double alpha_m_;
   // Flap state variables (using the new two-topic approach)
   double theta_m_;
   double theta_d_;
