@@ -16,8 +16,8 @@ class DualCameraClientNode(Node):
         self.get_logger().info(f"Capture frequency set to {freq} Hz")
 
         # Publishers for each camera
-        self.pub_cam1 = self.create_publisher(Image, '/camera/1', 10)
-        self.pub_cam2 = self.create_publisher(Image, '/camera/2', 10)
+        self.pub_cam1 = self.create_publisher(Image, '/camera_1', 10)
+        self.pub_cam2 = self.create_publisher(Image, '/camera_2', 10)
 
         self.bridge = CvBridge()
 

@@ -79,7 +79,7 @@ def generate_launch_description():
         )
     )
     
-    # Add the hardware launch at the beginning
+    # Add the minimal state estimation launch at the beginning
     ld.add_action(Thalamus_launch)
 
     # ------ Start testing controller ---------- #
@@ -99,6 +99,24 @@ def generate_launch_description():
     # Add the hardware launch at the beginning
     ld.add_action(BMF_launch)
 
+
+    # ------ Manage left and right cameras ---------- #
+    eyes = Node(
+        package='occipital_lobe',
+        executable='cameras_client_node',
+        name='eyes',
+        parameters=[config_file],
+        arguments=['--ros-args', '--log-level', 'WARN'],
+        output='screen',
+        remappings=[
+            ('/camera_1', '/camera_1'),
+            ('/camera_2', '/camera_2'),
+        ]
+    )
+    
+    # Add the hardware launch at the beginning
+    ld.add_action(eyes)
+
     # ------ Manage services, record and timeout ---------- #
     RMF_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -115,6 +133,9 @@ def generate_launch_description():
     
     # Add the hardware launch at the beginning
     ld.add_action(RMF_launch)
+
+
+    
 
     # Run everything
     return ld

@@ -218,8 +218,8 @@ private:
     double sine_val = sin(2 * M_PI * omega_m_ * t);
 
     // Differential adjustment for the wings:
-    double left_wing_angle  = (A_m_ - A_d_) * sine_val + alpha_m_ - alpha_d_;
-    double right_wing_angle = - (A_m_ + A_d_) * sine_val - alpha_d_ - alpha_d_;
+    double left_wing_angle  = (A_m_ - A_d_)/2.0 * sine_val + alpha_m_ - alpha_d_;
+    double right_wing_angle = - (A_m_ + A_d_)/2.0 * sine_val - alpha_d_ - alpha_d_;
 
     // Compute flap angles:
     // flap_dif is added to both, while flap_same is added to the left and subtracted from the right.
