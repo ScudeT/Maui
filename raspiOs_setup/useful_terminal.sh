@@ -93,3 +93,6 @@ ros2 run pwm_pca9685 pwm_wave_node \
     -p center:=31500 \
     -p amplitude:=12000 \
     -p wave_freq:=0.3
+
+ros2 bag play bags/23_05_25/bag_20250523_083627/ \
+  --read-ahead-queue-size 2000
