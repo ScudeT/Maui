@@ -20,7 +20,6 @@ public:
     // Parametri
     this->declare_parameter<double>("publish_rate", 30.0);
     publish_rate_ = this->get_parameter("publish_rate").as_double();
-    dt_ = 1.0 / publish_rate_;
     auto period = std::chrono::duration<double>(1.0 / publish_rate_);
 
 
@@ -50,10 +49,10 @@ public:
     
     // Get Tasting gains
     double dt = 1.0 / publish_rate_;
-    this->declare_parameter<double>("cutoff_freq", 10.0);
-    double cutoff_freq = this->get_parameter("cutoff_freq").as_double();
+    this->declare_parameter<double>("gyro_cutoff", 10.0);
+    double cutoff_freq = this->get_parameter("gyro_cutoff").as_double();
     
-    kf_ = - (M_PI * cutoff_freq * dt + 1.0)/ (M_PI * cutoff_freq * dt -1.0);
+    kf_ = - (M_PI * cutoff_freq * dt - 1.0)/ (M_PI * cutoff_freq * dt +1.0);
     kr_ = - (M_PI * cutoff_freq * dt)/ (M_PI * cutoff_freq * dt + 1.0);
 
     // Inizializza flag

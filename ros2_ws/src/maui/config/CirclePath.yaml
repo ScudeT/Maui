@@ -8,8 +8,8 @@ attitude/w_ctrl:
     freq: 30
      # PID settings: | kp | ki | kd | min | max | filter (0 = full filtering, 1 = no filtering) |
     wx_pid_settings: [1.0, 0.0, 0.0, -30.0, 30.0, 0.1]  # alpha_d
-    wy_pid_settings: [1.0, 0.1, 0.0, -45.0, 45.0, 0.1]  # theta_m
-    wz_pid_settings: [-1.0, 0.1, 0.0, -60.0, 60.0, 0.1]  # A_d
+    wy_pid_settings: [1.0, 0.0, 0.0, -45.0, 45.0, 0.1]  # theta_m
+    wz_pid_settings: [-1.0, 0.0, 0.0, -60.0, 60.0, 0.1]  # A_d
 
 attitude/q_ctrl: 
   ros__parameters:

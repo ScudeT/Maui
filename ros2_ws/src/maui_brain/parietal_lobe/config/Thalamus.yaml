@@ -1,5 +1,6 @@
 est/simple_odom:
   ros__parameters:
     publish_rate: 100.0
+    gyro_cutoff: 50.0
     header_frame: "odom"
     child_frame: "base_link"
