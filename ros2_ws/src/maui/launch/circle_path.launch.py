@@ -88,7 +88,7 @@ def generate_launch_description():
     )
     
     # Add the hardware launch at the beginning
-    # ld.add_action(circle_path_launch)
+    ld.add_action(circle_path_launch)
 
     depth_path_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(

@@ -54,7 +54,7 @@ def generate_launch_description():
             ('wy_act', '/input/theta_m'),
             ('wz_act', '/input/A_d',   ),
             # -------------------------- #
-            ('reset_controllers', 'reset_w_ctrl'),
+            ('reset_controllers', 'reset_ctrl'),
         ]
     )
 
