@@ -42,7 +42,7 @@ def generate_launch_description():
     )
     
     # Add the hardware launch at the beginning
-    # ld.add_action(PNS_launch)
+    ld.add_action(PNS_launch)
 
     
     # ------ Start the Thalamus ---------- #
@@ -89,6 +89,22 @@ def generate_launch_description():
     
     # Add the hardware launch at the beginning
     # ld.add_action(circle_path_launch)
+
+    depth_path_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('frontal_lobe'),
+                'launch',  
+                'depth_sine.launch.py'
+            )
+        ),
+        launch_arguments={
+            'config_file': config_file
+        }.items()
+    )
+    
+    # Add the hardware launch at the beginning
+    ld.add_action(depth_path_launch)
 
     # ------ Manage left and right cameras ---------- #
     eyes = Node(

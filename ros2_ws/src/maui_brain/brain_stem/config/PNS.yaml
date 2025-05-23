@@ -1,4 +1,4 @@
-IMU:
+mpu9250:
   ros__parameters:
     freq: 100.0        # Update rate of the heading estimation and data published (at least lower than the chosen FIFO_SAMPLE_RATE)
     frame_id: 'imu_link'
@@ -18,7 +18,7 @@ IMU:
 
     accel_fs_sel: 1           # Corresponds to ACCEL_FS_SEL::A4G
     gyro_fs_sel: 0            # Corresponds to GYRO_FS_SEL::G250DPS
-    mag_output_bits: 1        # Corresponds to MAG_OUTPUT_BITS::M14BITS
+    mag_output_bits: 0        # Corresponds to MAG_OUTPUT_BITS::M14BITS
     fifo_sample_rate: 1       # Corresponds to FIFO_SAMPLE_RATE::SMPL_500HZ
     gyro_dlpf_cfg: 3          # Corresponds to GYRO_DLPF_CFG::DLPF_41HZ
     accel_dlpf_cfg: 3         # Corresponds to ACCEL_DLPF_CFG::DLPF_45HZ
@@ -32,7 +32,7 @@ IMU:
     w_cov:    0.01
     rpy_cov:  0.001
 
-depth:
+ms5837:
   ros__parameters:
     freq: 50.0
     frame_id: 'bar_link'

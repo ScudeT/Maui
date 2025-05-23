@@ -11,27 +11,18 @@ def generate_launch_description():
     
     ld = LaunchDescription()
 
-    default_config_arg = os.path.join( # Path to parameters
+    config_file = os.path.join( # Path to parameters
         get_package_share_directory('brain_stem'),
         'config', 
         'PNS.yaml'
     )
-
-    config_arg = DeclareLaunchArgument(
-        'config_file',
-        default_value = default_config_arg,
-        description='Full path to the YAML configuration file'
-    )
-    ld.add_action(config_arg)
-
-    config_file = LaunchConfiguration('config_file')
 
     # ------------------------------------------ #
 
     mpu9250_node = Node(
         package='mpu9250',
         executable='mpu9250_node',
-        name='IMU',
+        name='mpu9250',
         parameters=[config_file],
         arguments=['--ros-args', '--log-level', 'WARN'],
         output='screen',
@@ -78,10 +69,10 @@ def generate_launch_description():
     #ld.add_action(gps)
     # ------------------------------------------ #
     
-    depth = Node(
+    ms5837 = Node(
         package='ms5837',
         executable='pose_node',
-        name='depth',
+        name='ms5837',
         arguments=['--ros-args', '--log-level', 'WARN'],
         output='screen',
         remappings=[
@@ -89,7 +80,7 @@ def generate_launch_description():
         ]
     )
 
-    ld.add_action(depth)
+    ld.add_action(ms5837)
     # ------------------------------------------ #
 
     button = Node(

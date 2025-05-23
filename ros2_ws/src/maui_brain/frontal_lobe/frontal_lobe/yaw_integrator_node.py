@@ -5,6 +5,8 @@ from nav_msgs.msg import Odometry
 from std_srvs.srv import Trigger
 import math
 
+RAD2DEG = 180.0 / math.pi
+
 class YawIntegratorNode(Node):
 
     def __init__(self):
@@ -58,10 +60,10 @@ class YawIntegratorNode(Node):
 
         if self.running:
             self.current_yaw += self.wz * dt
-            msg.data = self.current_yaw
+            msg.data = self.current_yaw * RAD2DEG
         else:
             if self.latest_measure_yaw is not None:
-                msg.data = self.latest_measure_yaw
+                msg.data = self.latest_measure_yaw * RAD2DEG
             else:
                 return  # Nothing to publish yet
 

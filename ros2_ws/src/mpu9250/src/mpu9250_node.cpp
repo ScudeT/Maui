@@ -77,6 +77,11 @@ public:
         return;
     }
 
+    RCLCPP_WARN(this->get_logger(), "Starting calibration for MPU9250...");
+    imu_->calibrateAccelGyro();
+    //imu_->calibrateMag();
+    //RCLCPP_WARN(this->get_logger(), "Calibration complete. Configuring MPU9250...");
+
     // Use the enum value for filter selection directly.
     QuatFilterSel filter_sel = static_cast<QuatFilterSel>(filter_val);
     imu_->selectFilter(filter_sel);
@@ -89,9 +94,7 @@ public:
     w_cov_ =    this->get_parameter("w_cov").as_double();
     rpy_cov_ =  this->get_parameter("rpy_cov").as_double();
 
-    imu_->calibrateAccelGyro();
-
-    RCLCPP_INFO(this->get_logger(), "MPU9250 initialized and calibrated.");
+    RCLCPP_WARN(this->get_logger(), "MPU9250 initialized and calibrated.");
 }
 
 private:

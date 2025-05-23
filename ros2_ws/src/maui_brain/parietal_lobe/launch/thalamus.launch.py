@@ -28,9 +28,21 @@ def generate_launch_description():
             )
         )
     )
+
+    imu_to_base = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_tf_pub',
+        arguments=[
+            '0.0', '0.5', '0.3',       # translation: x y z
+            '1.0', '0.0', '0.0', '0.0',       # rotation in Euler: roll pitch yaw
+            'base_link', 'imu_link'       # parent_frame child_frame
+        ]
+    )
     
     # Add the hardware launch at the beginning
     # ld.add_action(Proprioception_launch)
+    ld.add_action(imu_to_base)
 
     # ------------------------------------------ #
 
