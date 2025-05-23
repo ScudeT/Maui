@@ -54,7 +54,7 @@ def generate_launch_description():
         name='ctrl',
         output='screen',
         parameters=[config_file],
-        arguments=['--ros-args', '--log-level', 'WARN'],
+        arguments=['--ros-args', '--log-level', 'INFO'],
         namespace='depth',
         remappings=[
             ('reference', 'z_set'),

@@ -89,6 +89,8 @@ public:
     w_cov_ =    this->get_parameter("w_cov").as_double();
     rpy_cov_ =  this->get_parameter("rpy_cov").as_double();
 
+    imu_->calibrateAccelGyro();
+
     RCLCPP_INFO(this->get_logger(), "MPU9250 initialized and calibrated.");
 }
 

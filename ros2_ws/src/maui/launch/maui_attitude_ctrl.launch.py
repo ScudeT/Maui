@@ -37,7 +37,10 @@ def generate_launch_description():
                 'launch',  # assuming the launch file is in the 'launch' folder
                 'peripheral_nervous_system.launch.py'
             )
-        )
+        ),
+        launch_arguments={
+            'config_file': config_file
+        }.items()
     )
     
     # Add the hardware launch at the beginning
@@ -45,24 +48,20 @@ def generate_launch_description():
 
     # ------------------------------------------ #
 
-    fake_odom = Node(
-        package='maui',
-        executable='odom_test_node',
-        name='fake_odom',
-        parameters=[config_file],
-        arguments=['--ros-args', '--log-level', 'WARN'],
-        output='screen',
-        namespace='est',
-        remappings=[
-
-            # -------------------------- #       
-            ('odom', 'odom'), 
-            # -------------------------- #
-        ]
+    # ------ Start the Thalamus ---------- #
+    Thalamus_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('parietal_lobe'),
+                'launch',  
+                'thalamus.launch.py'
+            )
+        )
     )
-
-    # Add the included launch description to your LaunchDescription
-    ld.add_action(fake_odom)
+    
+    # Add the minimal state estimation launch at the beginning
+    ld.add_action(Thalamus_launch)
+    
     # ------------------------------------------ #
 
     # ------ Start Depth and Attitude control ---------- #
@@ -71,7 +70,7 @@ def generate_launch_description():
             os.path.join(
                 get_package_share_directory('cerebellum'),
                 'launch',  
-                'attitude_controller.launch.py'
+                'depth_and_attitude_controller.launch.py'
             )
         ),
         launch_arguments={

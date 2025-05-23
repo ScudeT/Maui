@@ -21,7 +21,11 @@ public:
     // Declare and get the publish_rate parameter (in Hz).
     this->declare_parameter<double>("publish_rate", 10.0);
     publish_rate_ = this->get_parameter("publish_rate").as_double();
+    dt_ = 1.0 / publish_rate_;
     auto period = std::chrono::duration<double>(1.0 / publish_rate_);
+
+    this->declare_parameter<double>("gyro_cutoff", 10.0);
+    gyro_cutoff_ = this->get_parameter("gyro_cutoff").as_double();
 
     this->declare_parameter<std::string>("header_frame", "odom");
     header_frame_ = this->get_parameter("header_frame").as_string();
@@ -126,6 +130,12 @@ private:
     tf_broadcaster_->sendTransform(transformStamped);
   }
 
+  tf2::Vector3 filter_gyro()
+  {
+    double wx_raw = current_imu.angular_velocity.x;
+    
+  } 
+
   // Subscribers
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
   rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pose_subscriber_;
@@ -152,6 +162,10 @@ private:
   double publish_rate_;
   std::string header_frame_;
   std::string child_frame_;
+
+  // filter gyro data
+  double dt_;
+  double gyro_cutoff_;
 };
 
 int main(int argc, char * argv[])
