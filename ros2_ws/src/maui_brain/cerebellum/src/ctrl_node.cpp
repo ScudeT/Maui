@@ -24,7 +24,7 @@ public:
     // Declare parameters with default values
     this->declare_parameter<int>("freq", 30);
     this->declare_parameter<std::vector<int>>("angle_range", std::vector<int>{-60, 60});
-    this->declare_parameter<std::vector<int>>("pwm_range", std::vector<int>{21500, 51500});
+    this->declare_parameter<std::vector<int>>("pwm_range", std::vector<int>{19500, 43500});
     this->declare_parameter<std::vector<double>>("start_wing", std::vector<double>{1.0, 0.0, 0.0, 0.0, 0.0});
     // start_flap now holds the starting values for flap_same and flap_dif
     this->declare_parameter<std::vector<double>>("start_flap", std::vector<double>{0.0, 0.0});
@@ -175,7 +175,7 @@ private:
     } else {
       response->message = "Publishing stopped.";
       std_msgs::msg::Int32MultiArray command_msg;
-      command_msg.data.resize(16, -1);
+      command_msg.data.resize(16, 0);
       command_pub_->publish(command_msg);
     }
     response->success = true;
