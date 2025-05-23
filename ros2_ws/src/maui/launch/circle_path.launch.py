@@ -65,7 +65,7 @@ def generate_launch_description():
             os.path.join(
                 get_package_share_directory('cerebellum'),
                 'launch',  
-                'depth_and_attitude_controller.launch.py'
+                'attitude_controller.launch.py'
             )
         ),
         launch_arguments={

@@ -51,7 +51,7 @@ def generate_launch_description():
         executable='w_ctrl_node',
         name='w_ctrl',
         parameters=[config_file],
-        arguments=['--ros-args', '--log-level', 'WARN'],
+        arguments=['--ros-args', '--log-level', 'INFO'],
         output='screen',
         namespace='attitude',
         remappings=[
@@ -78,7 +78,7 @@ def generate_launch_description():
         executable='q_ctrl_node',
         name='q_ctrl',
         parameters=[config_file],
-        arguments=['--ros-args', '--log-level', 'INFO'],
+        arguments=['--ros-args', '--log-level', 'WARN'],
         output='screen',
         namespace='attitude',
         remappings=[

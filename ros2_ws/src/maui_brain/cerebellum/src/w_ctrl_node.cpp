@@ -92,9 +92,18 @@ private:
     void timer_callback() {
         // Publish the current setpoint and measured values
         std_msgs::msg::Float32 msg_wx_act, msg_wy_act, msg_wz_act;
-        msg_wx_act.data = pid_x_->compute(w_set_.x*TODEGREE, w_mes_.x*TODEGREE);
-        msg_wy_act.data = pid_y_->compute(w_set_.y*TODEGREE, w_mes_.y*TODEGREE);
-        msg_wz_act.data = pid_z_->compute(w_set_.z*TODEGREE, w_mes_.z*TODEGREE);  
+        // Compute the PID control outputs
+        // Note: The PIDController expects the input in degrees, so we convert from radians to degrees
+        double set_x = w_set_.x * TODEGREE;
+        double set_y = w_set_.y * TODEGREE;
+        double set_z = w_set_.z * TODEGREE;
+        double mes_x = w_mes_.x * TODEGREE;
+        double mes_y = w_mes_.y * TODEGREE;
+        double mes_z = w_mes_.z * TODEGREE;
+
+        msg_wx_act.data = pid_x_->compute(set_x, mes_x);
+        msg_wy_act.data = pid_y_->compute(set_y, mes_y);
+        msg_wz_act.data = pid_z_->compute(set_z, mes_z);
 
         pub_wx_act_->publish(msg_wx_act);
         pub_wy_act_->publish(msg_wy_act);
