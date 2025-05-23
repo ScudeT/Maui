@@ -36,7 +36,7 @@ def generate_launch_description():
         executable='yaw_integrator_node',
         name='circle_yaw',
         parameters=[config_file],
-        arguments=['--ros-args', '--log-level', 'WARN'],
+        arguments=['--ros-args', '--log-level', 'INFO'],
         output='screen',
         namespace='path',
         remappings=[

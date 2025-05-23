@@ -42,7 +42,7 @@ def generate_launch_description():
     )
     
     # Add the hardware launch at the beginning
-    #ld.add_action(PNS_launch)
+    ld.add_action(PNS_launch)
 
     
     # ------ Start the Thalamus ---------- #
@@ -91,7 +91,7 @@ def generate_launch_description():
     )
     
     # Add the hardware launch at the beginning
-    ld.add_action(circle_path_launch)
+    # ld.add_action(circle_path_launch)
 
     # ------ Manage left and right cameras ---------- #
     eyes = Node(

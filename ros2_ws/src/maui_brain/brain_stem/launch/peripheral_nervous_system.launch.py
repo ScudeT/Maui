@@ -75,7 +75,7 @@ def generate_launch_description():
         ]
     )
 
-    ld.add_action(gps)
+    #ld.add_action(gps)
     # ------------------------------------------ #
     
     depth = Node(

@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32
 from nav_msgs.msg import Odometry
-from std_srvs.srv import SetBool
+from std_srvs.srv import Trigger
 import math
 
 class YawIntegratorNode(Node):
@@ -23,8 +23,8 @@ class YawIntegratorNode(Node):
         self.measurement_sub = self.create_subscription(
             Odometry, 'measurement', self.measurement_callback, 10)
 
-        # Service
-        self.trigger_srv = self.create_service(SetBool, 'trigger', self.trigger_callback)
+        # Trigger service
+        self.trigger_srv = self.create_service(Trigger, 'trigger', self.trigger_callback)
 
         # Timer
         self.timer = self.create_timer(float(1.0 / self.frequency), self.timer_callback)
@@ -58,7 +58,7 @@ class YawIntegratorNode(Node):
         self.yaw_pub.publish(msg)
 
     def trigger_callback(self, request, response):
-        if request.data:
+        if not self.running:
             if not self.initialized:
                 response.success = False
                 response.message = "Waiting for measurement to initialize yaw."
@@ -76,11 +76,9 @@ class YawIntegratorNode(Node):
         return response
 
     def quaternion_to_yaw(self, x, y, z, w):
-        # Extract yaw from quaternion
         siny_cosp = 2.0 * (w * z + x * y)
         cosy_cosp = 1.0 - 2.0 * (y * y + z * z)
         return math.atan2(siny_cosp, cosy_cosp)
-
 
 def main(args=None):
     rclpy.init(args=args)
@@ -88,7 +86,6 @@ def main(args=None):
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()

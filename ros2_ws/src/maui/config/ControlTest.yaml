@@ -37,9 +37,10 @@ reflex:
   ros__parameters:
     service_names: 
       - '/record'
-      - '/start_and_stop'
+      - '/input/start_and_stop'
       - '/on_and_off'
       - '/fatique'
+      - '/path/circle_reset'
     
 
 memory:
