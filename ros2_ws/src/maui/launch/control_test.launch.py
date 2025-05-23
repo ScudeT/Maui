@@ -115,7 +115,7 @@ def generate_launch_description():
     )
     
     # Add the hardware launch at the beginning
-    ld.add_action(eyes)
+#    ld.add_action(eyes)
 
     # ------ Manage services, record and timeout ---------- #
     RMF_launch = IncludeLaunchDescription(
