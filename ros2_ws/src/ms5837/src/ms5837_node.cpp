@@ -17,7 +17,7 @@ public:
         RCLCPP_INFO(this->get_logger(), "MS5837 sensor initialized successfully");
 
         // Set fluid density for seawater (default is 1029 kg/m^3)
-        sensor.setFluidDensity(1029);
+        sensor.setFluidDensity(1000);
         sensor.setModel(MS5837::MS5837_02BA);
         RCLCPP_INFO(this->get_logger(), "Fluid density set to 1029 kg/m^3 and sensor model set to MS5837_02BA");
 

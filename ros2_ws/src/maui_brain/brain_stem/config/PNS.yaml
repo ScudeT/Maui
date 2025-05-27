@@ -5,15 +5,17 @@ IMU:
     filter: 1                 # 0: NONE, 1: MADGWICK, 2: MAHONY
 
     # sensor specific parameters
-    accel_fs_sel: 1           # Corresponds to ACCEL_FS_SEL::A4G
-    gyro_fs_sel: 0            # Corresponds to GYRO_FS_SEL::G500DPS
-    mag_output_bits: 1        # Corresponds to MAG_OUTPUT_BITS::M14BITS
+    accel_fs_sel: 0           # Corresponds to ACCEL_FS_SEL::A2G
+    gyro_fs_sel: 0            # Corresponds to GYRO_FS_SEL::G250DPS
+    mag_output_bits: 1        # Corresponds to MAG_OUTPUT_BITS::M16BITS
     fifo_sample_rate: 1       # Corresponds to FIFO_SAMPLE_RATE::SMPL_500HZ
-    gyro_dlpf_cfg: 2          # Corresponds to GYRO_DLPF_CFG::DLPF_41HZ
-    accel_dlpf_cfg: 2         # Corresponds to ACCEL_DLPF_CFG::DLPF_45HZ
-    g: 9.81
-    acc_cov: 0.01
-    w_cov: 0.01
+    gyro_dlpf_cfg: 5          # Corresponds to GYRO_DLPF_CFG::DLPF_10HZ
+    accel_dlpf_cfg: 5         # Corresponds to ACCEL_DLPF_CFG::DLPF_10HZ
+    g: 9.80665
+    # acc_cov:  0.000644
+    # w_cov: 0.000000335
+    acc_cov:  0.001
+    w_cov: 0.000001
     rpy_cov: 0.0003
 
 depth:
@@ -21,7 +23,7 @@ depth:
     freq: 50.0
     frame_id: 'bar_link'
     offset: 0.0
-    cov: 0.0001
+    cov: 0.000000025
 
 pca9685:
   ros__parameters:

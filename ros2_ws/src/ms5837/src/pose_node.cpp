@@ -16,11 +16,11 @@ public:
         RCLCPP_INFO(this->get_logger(), "MS5837 sensor initialized successfully");
 
         // Set fluid density for seawater (default is 1029 kg/m^3)
-        sensor.setFluidDensity(1029);
+        sensor.setFluidDensity(1000);
         sensor.setModel(MS5837::MS5837_02BA);
         RCLCPP_INFO(this->get_logger(), "Fluid density set to 1029 kg/m^3 and sensor model set to MS5837_02BA");
 
-        this->declare_parameter<double>("offset", 0.15);
+        this->declare_parameter<double>("offset", 0.0);
         offset_ = this->get_parameter("offset").as_double();
 
         this->declare_parameter<double>("cov", 0.0001);
@@ -88,7 +88,7 @@ private:
         // Set the pose
         pose_msg.pose.pose.position.x = 0.0;
         pose_msg.pose.pose.position.y = 0.0;
-        pose_msg.pose.pose.position.z = - depth - offset_;
+        pose_msg.pose.pose.position.z = depth + offset_;
 
         // Assuming no specific orientation known, set quaternion for no rotation
         pose_msg.pose.pose.orientation.x = 0.0;
