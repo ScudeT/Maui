@@ -11,6 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
@@ -48,11 +49,21 @@ ament_target_dependencies(pid_node
   std_srvs
 )
 
-
+# Attitude controller
+add_executable(attitude_ctrl_node src/attitude_ctrl_node.cpp)
+ament_target_dependencies(attitude_ctrl_node
+  rclcpp
+  std_msgs
+  std_srvs
+  geometry_msgs
+  nav_msgs
+  tf2
+)
 
 install(TARGETS
-ctrl_node
+  ctrl_node
   pid_node
+  attitude_ctrl_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
