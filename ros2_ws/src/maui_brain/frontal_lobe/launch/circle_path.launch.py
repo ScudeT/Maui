@@ -5,57 +5,56 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 
 def generate_launch_description():
     
     ld = LaunchDescription()
 
-    default_config_arg = os.path.join( # Path to parameters
-        get_package_share_directory('cerebellum'),
+    override_config_arg = os.path.join( # Path to parameters
+        get_package_share_directory('frontal_lobe'),
         'config', 
-        'BMF.yaml'
+        'CirclePath.yaml'
     )
 
     config_arg = DeclareLaunchArgument(
         'config_file',
-        default_value = default_config_arg,
+        default_value = override_config_arg,
         description='Full path to the YAML configuration file'
     )
     ld.add_action(config_arg)
 
-    config_file = LaunchConfiguration('config_file') 
+    config_file = LaunchConfiguration('config_file')
 
     # ------------------------------------------ #
+    # ------------------------------------------ #
 
-    ctrl = Node(
-        package='cerebellum',
-        executable='ctrl_node',
-        name='ctrl',
+    yaw_setter = Node(
+        package='frontal_lobe',
+        executable='yaw_integrator_node',
+        name='circle_yaw',
         parameters=[config_file],
         arguments=['--ros-args', '--log-level', 'WARN'],
         output='screen',
-        namespace='input',
+        namespace='path',
         remappings=[
-            ('omega_m', 'omega_m'),
-            ('A_m',     'A_m',   ),            
-            ('A_d',     'A_d',   ),
-            ('alpha_m', 'alpha_m'),
-            ('alpha_d', 'alpha_d'),
+           ('measure', '/est/odom'), 
             
-            ('theta_m', 'theta_m'),
-            ('theta_d', 'theta_d'),           
+            # -------------------------- #       
+            ('yaw', '/attitude/yaw_set'), 
+            # -------------------------- #
             
-            # -------------------------- #
-            ('command', '/command'),
-            # -------------------------- #
-
-            ('start_and_stop', 'start_and_stop'),
+            ('trigger', 'circle_reset'),
         ]
     )
 
     # Add the included launch description to your LaunchDescription
-    ld.add_action(ctrl)
+    ld.add_action(yaw_setter)
     # ------------------------------------------ #
+    
+    
 
+    # Run everything
     return ld

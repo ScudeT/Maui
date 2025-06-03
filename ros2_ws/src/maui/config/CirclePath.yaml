@@ -1,0 +1,74 @@
+path/circle_yaw:
+  ros__parameters:
+    freq: 30
+    wz: 0.2
+
+attitude/ctrl: 
+  ros__parameters:
+    freq: 30
+    attitude_gains: [1.5, 1.5, 1.5]  # Kp for attitude control in roll, pitch, yaw
+
+    # PID settings: | kp | ki | kd | min | max | filter (0 = full filtering, 1 = no filtering) |
+    wx_pid_settings:  [1.0, 0.0, 0.1, -30.0, 30.0, 0.9]  # PID settings for alpha_d
+    wy_pid_settings:  [1.0, 0.0, 0.1, -45.0, 45.0, 0.9]  # PID settings for theta_m
+    wz_pid_settings:  [1.0, 0.0, 0.1, -60.0, 60.0, 0.9]  # PID settings for A_d
+  
+depth/ctrl:
+  ros__parameters:
+    freq: 30
+    # PID settings: | kp | ki | kd | min | max | filter (0 = full filtering, 1 = no filtering) |
+    pid_settings: [1.0, 0.0, 0.1, -2.0, 2.0, 0.9]  # PID settings for z
+    feedback_field: 'z'  # Field in the odom message to use for depth control
+
+input/ctrl:
+  ros__parameters:
+    freq: 30
+    angle_range: [-60, 60]
+    pwm_range: [19500, 43500]
+    start_wing: [1.0, 0.0, 0.0, 0.0] # | omega_m | A_m | A_d | alpha_d |
+    start_flap: [0.0, 0.0]           # | theta_m | theta_d |
+    clamp_flap: [-40, 40]
+
+eyes:
+  ros__parameters:
+    capture_frequency: 10.0
+
+reflex:
+  ros__parameters:
+    service_names: 
+      - '/record'
+      - '/attitude/reset_ctrl'
+      - '/depth/reset_ctrl'
+      - '/input/start_and_stop'
+      - '/on_and_off'
+      - '/fatique'
+      - '/path/circle_reset'
+
+memory:
+  ros__parameters:
+    topics:
+      - '/button_state:std_msgs/msg/Bool'
+      - '/command:std_msgs/msg/Int32MultiArray'
+      - '/input/omega_m:std_msgs/msg/Float32'
+      - '/input/A_m:std_msgs/msg/Float32'
+      - '/input/A_d:std_msgs/msg/Float32'
+      - '/input/alpha_d:std_msgs/msg/Float32'
+      - '/input/alpha_m:std_msgs/msg/Float32'
+      - '/input/theta_m:std_msgs/msg/Float32'
+      - '/input/theta_d:std_msgs/msg/Float32'
+      - '/imu/data:sensor_msgs/msg/Imu'
+      - '/gps_data:sensor_msgs/msg/NavSatFix'
+      - '/ms5837/pose:geometry_msgs/msg/PoseWithCovarianceStamped'
+      - '/est/odom:nav_msgs/msg/Odometry'
+      - '/camera_1:sensor_msgs/msg/Image'
+      - '/camera_2:sensor_msgs/msg/Image'
+      - '/attitude/q_ref:geometry_msgs/msg/Quaternion'
+      - '/attitude/roll_set:std_msgs/msg/Float32'
+      - '/attitude/pitch_set:std_msgs/msg/Float32'
+      - '/attitude/yaw_set:std_msgs/msg/Float32'
+      - '/depth/z_set:std_msgs/msg/Float32'
+    parent_folder: 'bags/circle_path'
+
+fatique:
+  ros__parameters:
+    time_out: 30.0

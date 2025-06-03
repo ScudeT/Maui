@@ -1,4 +1,4 @@
-ctrl:
+input/ctrl:
   ros__parameters:
     freq: 30
     angle_range: [-60, 60]

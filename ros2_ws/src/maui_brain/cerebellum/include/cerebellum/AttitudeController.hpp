@@ -43,6 +43,12 @@ public:
         return u;
     }
 
+    void reset() {
+        pid_x_.reset();
+        pid_y_.reset();
+        pid_z_.reset();
+    }
+
 private:
     tf2::Vector3 K_qerr_;
     PIDController pid_x_, pid_y_, pid_z_;

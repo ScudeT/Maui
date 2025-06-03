@@ -1,0 +1,16 @@
+attitude/ctrl: 
+  ros__parameters:
+    freq: 30
+    attitude_gains: [1.5, 1.5, 1.5]  # Kp for attitude control in roll, pitch, yaw
+
+    # PID settings: | kp | ki | kd | min | max | filter (0 = full filtering, 1 = no filtering) |
+    wx_pid_settings:  [1.0, 0.0, 0.1, -30.0, 30.0, 0.9]  # PID settings for alpha_d
+    wy_pid_settings:  [1.0, 0.0, 0.1, -45.0, 45.0, 0.9]  # PID settings for theta_m
+    wz_pid_settings:  [1.0, 0.0, 0.1, -60.0, 60.0, 0.9]  # PID settings for A_d
+  
+depth/ctrl:
+  ros__parameters:
+    freq: 30
+    # PID settings: | kp | ki | kd | min | max | filter (0 = full filtering, 1 = no filtering) |
+    pid_settings: [1.0, 0.0, 0.1, -2.0, 2.0, 0.9]  # PID settings for z
+    feedback_field: 'z'  # Field in the odom message to use for depth control

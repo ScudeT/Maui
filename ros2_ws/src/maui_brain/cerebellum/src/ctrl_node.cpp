@@ -90,24 +90,24 @@ public:
 
     // Subscribers for wing parameters
     omega_m_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/freq", 10, std::bind(&CommandPublisher::omegaMCallback, this, _1));
+      "omega_m", 10, std::bind(&CommandPublisher::omegaMCallback, this, _1));
     A_m_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/A_m", 10, std::bind(&CommandPublisher::AmCallback, this, _1));
+      "A_m", 10, std::bind(&CommandPublisher::AmCallback, this, _1));
     A_d_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/A_d", 10, std::bind(&CommandPublisher::AdCallback, this, _1));
+      "A_d", 10, std::bind(&CommandPublisher::AdCallback, this, _1));
     alpha_m_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/alpha_m", 10, std::bind(&CommandPublisher::alphaMCallback, this, _1));
+      "alpha_m", 10, std::bind(&CommandPublisher::alphaMCallback, this, _1));
     alpha_d_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/alpha_d", 10, std::bind(&CommandPublisher::alphaDCallback, this, _1));
+      "alpha_d", 10, std::bind(&CommandPublisher::alphaDCallback, this, _1));
 
     // Subscribers for flap topics (using the new two-topic approach)
     theta_m_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/theta_m", 10, std::bind(&CommandPublisher::thetaMCallback, this, _1));
+      "theta_m", 10, std::bind(&CommandPublisher::thetaMCallback, this, _1));
     theta_d_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/theta_d", 10, std::bind(&CommandPublisher::thetaDCallback, this, _1));
+      "theta_d", 10, std::bind(&CommandPublisher::thetaDCallback, this, _1));
 
     // Publisher for /command topic
-    command_pub_ = this->create_publisher<std_msgs::msg::Int32MultiArray>("/command", 10);
+    command_pub_ = this->create_publisher<std_msgs::msg::Int32MultiArray>("command", 10);
 
     // Service to start/stop publishing command messages
     start_stop_srv_ = this->create_service<std_srvs::srv::Trigger>(

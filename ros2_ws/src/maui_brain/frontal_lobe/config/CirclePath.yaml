@@ -1,0 +1,4 @@
+path/circle_yaw:
+  ros__parameters:
+    freq: 30
+    wz: 0.2

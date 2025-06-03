@@ -47,6 +47,9 @@ ament_target_dependencies(pid_node
   rclcpp
   std_msgs
   std_srvs
+  geometry_msgs
+  nav_msgs
+  tf2
 )
 
 # Attitude controller
@@ -60,10 +63,41 @@ ament_target_dependencies(attitude_ctrl_node
   tf2
 )
 
+# Attitude controller devided
+add_executable(w_ctrl_node src/w_ctrl_node.cpp)
+ament_target_dependencies(w_ctrl_node
+  rclcpp
+  std_msgs
+  geometry_msgs
+  nav_msgs
+  tf2
+  std_srvs
+)
+add_executable(q_ctrl_node src/q_ctrl_node.cpp)
+ament_target_dependencies(q_ctrl_node
+  rclcpp
+  std_msgs
+  geometry_msgs
+  nav_msgs
+  tf2
+)
+
+# rpy setpoint to quaternion
+add_executable(ypr2q_node src/ypr2q_node.cpp)
+ament_target_dependencies(ypr2q_node
+  rclcpp
+  std_msgs
+  geometry_msgs
+  tf2
+)
+
 install(TARGETS
   ctrl_node
   pid_node
   attitude_ctrl_node
+  w_ctrl_node
+  q_ctrl_node
+  ypr2q_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

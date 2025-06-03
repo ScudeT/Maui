@@ -16,7 +16,7 @@ def generate_launch_description():
     override_config_arg = os.path.join( # Path to parameters
         get_package_share_directory('maui'),
         'config', 
-        'ControlTest.yaml'
+        'CirclePath.yaml'
     )
 
     config_arg = DeclareLaunchArgument(
@@ -28,29 +28,6 @@ def generate_launch_description():
 
     config_file = LaunchConfiguration('config_file')
 
-    # ------------------------------------------ #
-    # ------ Start the command test ---------- #
-
-    command_test_node = Node(
-        package='maui',
-        executable='comand_test_node',
-        name='command_test_node',
-        parameters=[config_file],
-        arguments=['--ros-args', '--log-level', 'WARN'],
-        output='screen',
-        remappings=[
-            ('/input1', '/A_m'),
-            ('/input2', '/A_d'),
-            ('/input3', '/alpha_m'),
-            ('/input4', '/alpha_d'),
-            ('/input5', '/theta_m'),
-            ('/input6', '/theta_d'),
-
-            ('/trigger', '/on_and_off'),
-        ]
-    )
-    # Add the included launch description to your LaunchDescription
-    ld.add_action(command_test_node)
     # ------------------------------------------ #
 
     # ------ Start the PNS ---------- #
@@ -65,7 +42,7 @@ def generate_launch_description():
     )
     
     # Add the hardware launch at the beginning
-    ld.add_action(PNS_launch)
+    #ld.add_action(PNS_launch)
 
     
     # ------ Start the Thalamus ---------- #
@@ -82,13 +59,13 @@ def generate_launch_description():
     # Add the minimal state estimation launch at the beginning
     ld.add_action(Thalamus_launch)
 
-    # ------ Start Basic Motor Functions ---------- #
-    BMF_launch = IncludeLaunchDescription(
+    # ------ Start Depth and Attitude control ---------- #
+    DA_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
                 get_package_share_directory('cerebellum'),
                 'launch',  
-                'basic_motor_functions.launch.py'
+                'depth_and_attitude_controller.launch.py'
             )
         ),
         launch_arguments={
@@ -97,8 +74,24 @@ def generate_launch_description():
     )
     
     # Add the hardware launch at the beginning
-    ld.add_action(BMF_launch)
+    ld.add_action(DA_launch)
 
+    # ------ Start path "planner" ---------- #
+    circle_path_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('frontal_lobe'),
+                'launch',  
+                'circle_path.launch.py'
+            )
+        ),
+        launch_arguments={
+            'config_file': config_file
+        }.items()
+    )
+    
+    # Add the hardware launch at the beginning
+    ld.add_action(circle_path_launch)
 
     # ------ Manage left and right cameras ---------- #
     eyes = Node(
@@ -133,9 +126,6 @@ def generate_launch_description():
     
     # Add the hardware launch at the beginning
     ld.add_action(RMF_launch)
-
-
-    
 
     # Run everything
     return ld

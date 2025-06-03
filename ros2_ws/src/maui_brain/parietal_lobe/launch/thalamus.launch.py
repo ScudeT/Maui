@@ -36,6 +36,7 @@ def generate_launch_description():
         output='screen',
         parameters=[config_file],
         arguments=['--ros-args', '--log-level', 'WARN'],
+        namespace='est',
         remappings=[
             ("/imu/data","/imu/data"),
             ("/ms5837/pose","/ms5837/pose"),
