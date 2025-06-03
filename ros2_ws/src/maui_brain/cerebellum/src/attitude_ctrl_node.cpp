@@ -31,15 +31,19 @@ public:
         RCLCPP_INFO(this->get_logger(), "Controller node started with update rate: %d Hz", update_rate);
         std::vector<double> wx_pid_settings = declare_parameter<std::vector<double>>("wx_pid_settings", std::vector<double>{10.0, 0.0, 0.0, -30.0, 30.0, 0.5});
         PIDController pid_x(wx_pid_settings[0], wx_pid_settings[1], wx_pid_settings[2],
-                            period_s, wx_pid_settings[4], wx_pid_settings[5], wx_pid_settings[6]);
+                            period_s, wx_pid_settings[3], wx_pid_settings[4], wx_pid_settings[5]);
  
         std::vector<double> wy_pid_settings = declare_parameter<std::vector<double>>("wy_pid_settings", std::vector<double>{10.0, 0.0, 0.0, -30.0, 30.0, 0.5});
         PIDController pid_y(wy_pid_settings[0], wy_pid_settings[1], wy_pid_settings[2],
-                            period_s, wy_pid_settings[4], wy_pid_settings[5], wy_pid_settings[6]);
+                            period_s, wy_pid_settings[3], wy_pid_settings[4], wy_pid_settings[5]);
         
         std::vector<double> wz_pid_settings = declare_parameter<std::vector<double>>("wz_pid_settings", std::vector<double>{10.0, 0.0, 0.0, -30.0, 30.0, 0.5});
         PIDController pid_z(wz_pid_settings[0], wz_pid_settings[1], wz_pid_settings[2],
-                            period_s, wz_pid_settings[4], wz_pid_settings[5], wz_pid_settings[6]);
+                            period_s, wz_pid_settings[3], wz_pid_settings[4], wz_pid_settings[5]);
+        
+        //pid_x.setVerbose(true);
+        //pid_y.setVerbose(true);
+        pid_z.setVerbose(true);
 
         // Attitude controller initialization
         att_ctrl_ = std::make_shared<AttitudeController>(att_gain, pid_x, pid_y, pid_z);

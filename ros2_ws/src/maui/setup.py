@@ -49,6 +49,7 @@ setup(
     entry_points={
         'console_scripts': [
             'comand_test_node = maui.comand_test_node:main',
+            'attitude_test_node = maui.attitude_test_node:main',
         ],
     },
 )

@@ -1,0 +1,20 @@
+q_test:
+  ros__parameters:
+    frequency: 10
+    amplitude: np.pi/2
+    period: 10.0
+    phase_shift: np.pi/4
+    yaw_min: -np.pi/3
+    yaw_max: np.pi/3
+
+
+
+attitude/ctrl: 
+  ros__parameters:
+    freq: 30
+    attitude_gains: [0.3, 0.3, 0.3]  # Kp for attitude control in roll, pitch, yaw
+
+    # PID settings: | kp | ki | kd | min | max | filter (0 = full filtering, 1 = no filtering) |
+    wx_pid_settings: [30.0, 0.0, 0.0, -30.0, 30.0, 0.1]  # alpha_d
+    wy_pid_settings: [10.0, 5.0, 1.0, -45.0, 45.0, 0.1]  # theta_m
+    wz_pid_settings: [-40.0, -5.0, 1.0, -60.0, 60.0, 0.1]  # A_d

@@ -3,6 +3,7 @@
 
 #include <algorithm>  
 #include <cstdint>
+#include <rclcpp/rclcpp.hpp>
 
 class PIDController {
 public:
@@ -24,6 +25,8 @@ public:
       deriv_filter_coef_(deriv_filter_coef),
       prev_error_(0.0), integral_(0.0), prev_derivative_(0.0)
   {}
+
+  void setVerbose(bool verbose) { verbose_ = verbose; }
 
   /**
    * @brief Compute the PID output given a setpoint and current measurement.
@@ -62,6 +65,12 @@ public:
     // Update internal state
     prev_error_ = error;
     prev_derivative_ = derivative;
+
+    if (verbose_) {
+        RCLCPP_INFO(rclcpp::get_logger("PIDController"),
+            "set: %.3f, mes: %.3f, error: %.3f, output: %.3f, P: %.3f, I: %.3f, D: %.3f",
+            setpoint, measurement, error, output, P, I, D);
+    }
 
     return output;
   }
@@ -120,6 +129,8 @@ private:
   double prev_error_;
   double integral_;
   double prev_derivative_;
+
+  bool verbose_ = false;
 };
 
 #endif // PID_CONTROLLER_HPP

@@ -26,20 +26,23 @@ public:
         RCLCPP_INFO(this->get_logger(), "Controller node started with update rate: %d Hz", update_rate);
         std::vector<double> roll_pid_settings = declare_parameter<std::vector<double>>("wx_pid_settings", std::vector<double>{10.0, 0.0, 0.0, -30.0, 30.0, 0.5});
         pid_x_ = std::make_shared<PIDController>(roll_pid_settings[0], roll_pid_settings[1], roll_pid_settings[2],
-                                                  period_s, roll_pid_settings[4], roll_pid_settings[5], roll_pid_settings[6]);
+                                                  period_s, roll_pid_settings[3], roll_pid_settings[4], roll_pid_settings[5]);
  
         std::vector<double> pitch_pid_settings = declare_parameter<std::vector<double>>("wy_pid_settings", std::vector<double>{10.0, 0.0, 0.0, -30.0, 30.0, 0.5});
         pid_y_ = std::make_shared<PIDController>(pitch_pid_settings[0], pitch_pid_settings[1], pitch_pid_settings[2],
-                                                  period_s, pitch_pid_settings[4], pitch_pid_settings[5], pitch_pid_settings[6]);
-        
+                                                  period_s, pitch_pid_settings[3], pitch_pid_settings[4], pitch_pid_settings[5]);
+
         std::vector<double> yaw_pid_settings = declare_parameter<std::vector<double>>("wz_pid_settings", std::vector<double>{10.0, 0.0, 0.0, -30.0, 30.0, 0.5});
         pid_z_ = std::make_shared<PIDController>(yaw_pid_settings[0], yaw_pid_settings[1], yaw_pid_settings[2],
-                                                  period_s, yaw_pid_settings[4], yaw_pid_settings[5], yaw_pid_settings[6]);
+                                                  period_s, yaw_pid_settings[3], yaw_pid_settings[4], yaw_pid_settings[5]);
+        //pid_x_->setVerbose(true);
+        //pid_y_->setVerbose(true);
+        pid_z_->setVerbose(true);
 
         // Publishers
         pub_wx_act_ = create_publisher<std_msgs::msg::Float32>("wx_act", 10);
-        pub_wy_act = create_publisher<std_msgs::msg::Float32>("wy_act", 10);
-        pub_wz_act_     = create_publisher<std_msgs::msg::Float32>("wz_act", 10);
+        pub_wy_act_ = create_publisher<std_msgs::msg::Float32>("wy_act", 10);
+        pub_wz_act_ = create_publisher<std_msgs::msg::Float32>("wz_act", 10);
 
         // Subscribers
         measure_sub_ = create_subscription<nav_msgs::msg::Odometry>(
@@ -69,7 +72,7 @@ private:
     geometry_msgs::msg::Vector3  w_set_;
 
     // Publishers & Subscribers
-    rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr pub_wx_act_, pub_wy_act, pub_wz_act_;
+    rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr pub_wx_act_, pub_wy_act_, pub_wz_act_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr measure_sub_;
     rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr setpoint_sub_;
     rclcpp::TimerBase::SharedPtr timer_;
@@ -92,9 +95,9 @@ private:
         msg_wz_act.data = pid_z_->compute(w_set_.z, w_mes_.z);  
 
         pub_wx_act_->publish(msg_wx_act);
-        pub_wy_act->publish(msg_wy_act);
+        pub_wy_act_->publish(msg_wy_act);
         pub_wz_act_->publish(msg_wz_act);
-        RCLCPP_INFO(this->get_logger(), "Published wx: %f, wy: %f, wz: %f", 
+        RCLCPP_INFO(this->get_logger(), "Published x: %0.2f, y: %0.2f, z: %0.2f", 
                                     msg_wx_act.data, msg_wy_act.data, msg_wz_act.data);
     }
 
