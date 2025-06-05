@@ -20,8 +20,8 @@ class YawIntegratorNode(Node):
         self.yaw_pub = self.create_publisher(Float32, 'yaw', 10)
 
         # Subscriber
-        self.measurement_sub = self.create_subscription(
-            Odometry, 'measurement', self.measurement_callback, 10)
+        self.measure_sub = self.create_subscription(
+            Odometry, 'measure', self.measure_callback, 10)
 
         # Trigger service
         self.trigger_srv = self.create_service(Trigger, 'trigger', self.trigger_callback)
@@ -35,13 +35,19 @@ class YawIntegratorNode(Node):
         self.current_yaw = 0.0
         self.last_time = self.get_clock().now()
 
-    def measurement_callback(self, msg):
-        if not self.running and not self.initialized:
-            q = msg.pose.pose.orientation
-            yaw = self.quaternion_to_yaw(q.x, q.y, q.z, q.w)
+        # Store the most recent measure yaw
+        self.latest_measure_yaw = None
+
+    def measure_callback(self, msg):
+        q = msg.pose.pose.orientation
+        yaw = self.quaternion_to_yaw(q.x, q.y, q.z, q.w)
+        self.latest_measure_yaw = yaw
+
+        # Initialize on first measure ever (legacy, can keep for robustness)
+        if not self.initialized:
             self.current_yaw = yaw
             self.initialized = True
-            self.get_logger().info(f'Initial yaw set from measurement: {yaw:.3f} rad')
+            self.get_logger().info(f'Initial yaw set from measure: {yaw:.3f} rad')
 
     def timer_callback(self):
         if not self.running or not self.initialized:
@@ -59,13 +65,16 @@ class YawIntegratorNode(Node):
 
     def trigger_callback(self, request, response):
         if not self.running:
-            if not self.initialized:
+            if not self.initialized or self.latest_measure_yaw is None:
                 response.success = False
-                response.message = "Waiting for measurement to initialize yaw."
+                response.message = "Waiting for measure to initialize yaw."
                 return response
-            self.running = True
+
+            # **Reset current_yaw to the latest measure value**
+            self.current_yaw = self.latest_measure_yaw
             self.last_time = self.get_clock().now()
-            self.get_logger().info("Yaw integration started.")
+            self.running = True
+            self.get_logger().info(f"Yaw integration started. Yaw reset to latest measure: {self.current_yaw:.3f} rad")
             response.success = True
             response.message = "Started"
         else:

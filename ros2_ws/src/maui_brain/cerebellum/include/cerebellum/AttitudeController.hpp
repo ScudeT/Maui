@@ -5,6 +5,8 @@
 #include <tf2/LinearMath/Vector3.h>
 #include <array>
 
+#define TODEGREE  180.0 / M_PI
+
 class AttitudeController {
 public:
     // Constructor: receive 3 PIDController instances (by value)
@@ -35,11 +37,11 @@ public:
         // Compute angular velocity setpoint from quaternion error
         tf2::Vector3 w_sp = 2.0 * K_qerr_ * q_err.getAxis() * q_err.getAngle();
 
-        // Get control inputs for the 3 axes
+        // Get control inputs for the 3 axes in degrees
         tf2::Vector3 u;
-        u.setX(pid_x_.compute(w_sp.x(), w_mes.x()));
-        u.setY(pid_y_.compute(w_sp.y(), w_mes.y()));
-        u.setZ(pid_z_.compute(w_sp.z(), w_mes.z()));
+        u.setX(pid_x_.compute(w_sp.x()*TODEGREE, w_mes.x()*TODEGREE));
+        u.setY(pid_y_.compute(w_sp.y()*TODEGREE, w_mes.y()*TODEGREE));
+        u.setZ(pid_z_.compute(w_sp.z()*TODEGREE, w_mes.z()*TODEGREE));
         return u;
     }
 

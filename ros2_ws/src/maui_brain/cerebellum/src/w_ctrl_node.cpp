@@ -10,6 +10,8 @@
 // Include your controller libraries
 #include "PIDController.hpp"
 
+#define TODEGREE  180.0 / M_PI
+
 class WControllerNode : public rclcpp::Node {
 public:
     WControllerNode()
@@ -90,9 +92,9 @@ private:
     void timer_callback() {
         // Publish the current setpoint and measured values
         std_msgs::msg::Float32 msg_wx_act, msg_wy_act, msg_wz_act;
-        msg_wx_act.data = pid_x_->compute(w_set_.x, w_mes_.x);
-        msg_wy_act.data = pid_y_->compute(w_set_.y, w_mes_.y);
-        msg_wz_act.data = pid_z_->compute(w_set_.z, w_mes_.z);  
+        msg_wx_act.data = pid_x_->compute(w_set_.x*TODEGREE, w_mes_.x*TODEGREE);
+        msg_wy_act.data = pid_y_->compute(w_set_.y*TODEGREE, w_mes_.y*TODEGREE);
+        msg_wz_act.data = pid_z_->compute(w_set_.z*TODEGREE, w_mes_.z*TODEGREE);  
 
         pub_wx_act_->publish(msg_wx_act);
         pub_wy_act_->publish(msg_wy_act);

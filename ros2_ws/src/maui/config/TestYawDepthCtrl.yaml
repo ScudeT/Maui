@@ -1,0 +1,44 @@
+est/fake_odom:
+  ros__parameters:
+    frequency: 30.0         # Publishing frequency in Hz
+    A: 0.0                  # Roll amplitude (radians)
+    B: 0.0                  # Pitch amplitude (radians)
+    C: 1.0                  # Yaw amplitude (radians)
+    D: 0.2                  # Depth amplitude (meters)
+    period: 10.0            # Seconds per full figure-8 cycle
+
+path/circle_yaw:
+  ros__parameters:
+    freq: 30
+    wz: 1.0
+
+
+attitude/w_ctrl:
+  ros__parameters:
+    freq: 30
+     # PID settings: | kp | ki | kd | min | max | filter (0 = full filtering, 1 = no filtering) |
+    wx_pid_settings: [1.0, 0.0, 0.0, -30.0, 30.0, 0.1]  # alpha_d
+    wy_pid_settings: [1.0, 0.1, 0.0, -45.0, 45.0, 0.1]  # theta_m
+    wz_pid_settings: [-1.0, 0.1, 0.0, -60.0, 60.0, 0.1]  # A_d
+
+attitude/q_ctrl: 
+  ros__parameters:
+    freq: 30
+    attitude_gains: 0.3  # Kp for attitude control in roll, pitch, yaw
+
+attitude/ctrl: 
+  ros__parameters:
+    freq: 30
+    attitude_gains: [0.3, 0.3, 0.3]  # Kp for attitude control in roll, pitch, yaw
+
+    # PID settings: | kp | ki | kd | min | max | filter (0 = full filtering, 1 = no filtering) |
+    wx_pid_settings: [1.0, 0.0, 0.0, -30.0, 30.0, 0.1]  # alpha_d
+    wy_pid_settings: [1.0, 0.1, 0.0, -45.0, 45.0, 0.1]  # theta_m
+    wz_pid_settings: [-1.0, 0.1, 0.0, -60.0, 60.0, 0.1]  # A_d
+  
+depth/ctrl:
+  ros__parameters:
+    freq: 30
+    # PID settings: | kp | ki | kd | min | max | filter (0 = full filtering, 1 = no filtering) |
+    pid_settings: [50.0, 0.0, 0.0, -30.0, 30.0, 0.1]  # PID settings for z
+    feedback_field: 'z'  # Field in the odom message to use for depth control

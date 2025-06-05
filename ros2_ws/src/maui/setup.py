@@ -50,6 +50,8 @@ setup(
         'console_scripts': [
             'comand_test_node = maui.comand_test_node:main',
             'attitude_test_node = maui.attitude_test_node:main',
+            'attitude_debug_node = maui.attitude_debug_node:main',
+            'odom_test_node = maui.odom_test_node:main',
         ],
     },
 )

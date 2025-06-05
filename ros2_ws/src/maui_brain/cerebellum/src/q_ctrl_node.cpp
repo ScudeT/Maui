@@ -19,8 +19,7 @@ public:
         int period_ms = static_cast<int>(1000.0 / update_rate);
 
         // Attitude controller gains
-        std::vector<double> att_ctrl_settings = declare_parameter<std::vector<double>>("attitude_gains", std::vector<double>{1.0, 1.0, 1.0});
-        Kp_ = tf2::Vector3(att_ctrl_settings[0], att_ctrl_settings[1], att_ctrl_settings[2]);
+        Kp_ = declare_parameter("attitude_gains", 1.0);
 
         // Publishers
         pub_w_set_ = create_publisher<geometry_msgs::msg::Vector3>("w_set", 10);
@@ -39,7 +38,7 @@ public:
     }
 
 private:
-    tf2::Vector3 Kp_; // Proportional gains for attitude control
+    double Kp_; // Proportional gains for attitude control
 
     // Attributes (store last setpoint and measured quaternions and angular velocity)
     tf2::Quaternion  q_mes_;
@@ -65,7 +64,7 @@ private:
 
     void timer_callback() {
         // Compute quaternion error
-        tf2::Quaternion q_err = q_mes_.inverse() * q_set_;
+        tf2::Quaternion q_err =  q_set_*q_mes_.inverse();
 
         // Get shortest rotation
         if (q_err.getW() < 0) {
@@ -73,15 +72,20 @@ private:
         }
 
         // Compute angular velocity setpoint from quaternion error
-        tf2::Vector3 w_sp = 2.0 * Kp_ * q_err.getAxis() * q_err.getAngle();
+        // tf2::Vector3 w_sp = 2.0 * Kp_ * q_err.getAxis() * q_err.getAngle();
+        tf2::Quaternion w_sp = q_mes_.inverse() * q_err;
+
+        tf2::Vector3 w_sp_vec(-2.0*Kp_*w_sp.getX(), -2.0*Kp_*w_sp.getY(), -2.0*Kp_*w_sp.getZ());
 
         // Publish the computed angular velocity setpoint
         geometry_msgs::msg::Vector3 w_set_msg;
-        w_set_msg.x = w_sp.getX();
-        w_set_msg.y = w_sp.getY();
-        w_set_msg.z = w_sp.getZ();
+        w_set_msg.x = w_sp_vec.getX();
+        w_set_msg.y = w_sp_vec.getY();
+        w_set_msg.z = w_sp_vec.getZ();
         pub_w_set_->publish(w_set_msg);
-        RCLCPP_INFO(this->get_logger(), "Published angular velocity setpoint: [%f, %f, %f]", w_set_msg.x, w_set_msg.y, w_set_msg.z);
+        RCLCPP_INFO(this->get_logger(), "w_sp: [%f, %f, %f, %f]", w_sp.getX(), w_sp.getY(), w_sp.getZ(), w_sp.getW());
+        RCLCPP_INFO(this->get_logger(), "q_err: [%f, %f, %f, %f]", q_err.getX(), q_err.getY(), q_err.getZ(), q_err.getW());
+        RCLCPP_INFO(this->get_logger(), "q_mes: [%f, %f, %f, %f]", q_mes_.getX(), q_mes_.getY(), q_mes_.getZ(), q_mes_.getW());
     }
 };
 
