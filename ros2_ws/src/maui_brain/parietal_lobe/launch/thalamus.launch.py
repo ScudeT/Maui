@@ -1,11 +1,11 @@
 import os
-from glob import glob
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
-
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 def generate_launch_description():
     
@@ -26,6 +26,22 @@ def generate_launch_description():
 
     config_file = LaunchConfiguration('config_file')
 
+    # -------------- Start Proprioception ----------------- #
+
+    Proprioception_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('parietal_lobe'),
+                'launch',  # assuming the launch file is in the 'launch' folder
+                'proprioception.launch.py'
+            )
+        )
+    )
+    
+    # Add the hardware launch at the beginning
+    ld.add_action(Proprioception_launch)
+
+    # ------------------------------------------ #
 
     # -------------- Estimates necessary and initialization----------------- #
     

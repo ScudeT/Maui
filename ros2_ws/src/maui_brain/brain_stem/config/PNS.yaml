@@ -25,16 +25,19 @@ IMU:
     g: 9.80665
     # acc_cov:  0.000644
     # w_cov: 0.000000335
-    acc_cov:  0.001
-    w_cov: 0.000001
-    rpy_cov: 0.0003
+    # acc_cov:  0.001
+    # w_cov: 0.000001
+    # rpy_cov: 0.0003
+    acc_cov:  1.0
+    w_cov:    0.01
+    rpy_cov:  0.001
 
 depth:
   ros__parameters:
     freq: 50.0
     frame_id: 'bar_link'
     offset: 0.0
-    cov: 0.000000025
+    variance: 0.000000025
 
 pca9685:
   ros__parameters:

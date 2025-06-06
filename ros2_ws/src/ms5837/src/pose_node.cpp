@@ -23,8 +23,8 @@ public:
         this->declare_parameter<double>("offset", 0.0);
         offset_ = this->get_parameter("offset").as_double();
 
-        this->declare_parameter<double>("cov", 0.0001);
-        cov_ = this->get_parameter("cov").as_double();
+        this->declare_parameter<double>("variance", 0.0001);
+        variance_ = this->get_parameter("variance").as_double();
 
 
         // Publishers
@@ -61,14 +61,14 @@ public:
         pose_covariance_[i] = 0.0;
         }
         // Example: give some uncertainty in z position
-        pose_covariance_[2 * 6 + 2] = cov_; // z variance = 0.05 m^2 (example)
+        pose_covariance_[2 * 6 + 2] = variance_; // z variance = 0.05 m^2 (example)
         // Add small uncertainties in x,y just for completeness
-        pose_covariance_[0 * 6 + 0] = cov_; // x variance
-        pose_covariance_[1 * 6 + 1] = cov_; // y variance
+        pose_covariance_[0 * 6 + 0] = 1e6; // x variance
+        pose_covariance_[1 * 6 + 1] = 1e6; // y variance
         // Orientation uncertainty (roll, pitch, yaw)
-        pose_covariance_[3 * 6 + 3] = cov_;
-        pose_covariance_[4 * 6 + 4] = cov_;
-        pose_covariance_[5 * 6 + 5] = cov_;
+        pose_covariance_[3 * 6 + 3] = 1e6;
+        pose_covariance_[4 * 6 + 4] = 1e6;
+        pose_covariance_[5 * 6 + 5] = 1e6;
     }
 
 private:
@@ -116,7 +116,7 @@ private:
     double pose_covariance_[36];
 
     double offset_;
-    double cov_;
+    double variance_;
 
     rclcpp::TimerBase::SharedPtr timer_;
 };

@@ -1,0 +1,4 @@
+est/joint_pose:
+  ros__parameters:
+    pwm_range: [19500, 43500]
+    servo_range: [-60.0, 60.0]

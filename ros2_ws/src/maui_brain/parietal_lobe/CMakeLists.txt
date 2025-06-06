@@ -40,9 +40,26 @@ ament_target_dependencies(imu_bar_odom
   tf2_geometry_msgs
 )
 
+add_executable(joint_pose_node src/joint_pose_node.cpp)
+ament_target_dependencies(joint_pose_node 
+  rclcpp 
+  std_msgs
+  sensor_msgs 
+)
+
+add_executable(imu_change_ref src/imu_change_ref_node.cpp)
+ament_target_dependencies(imu_change_ref 
+  rclcpp 
+  sensor_msgs 
+  tf2 
+  tf2_ros
+  tf2_geometry_msgs
+)
 
 install(TARGETS
   imu_bar_odom
+  joint_pose_node
+  imu_change_ref
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY config/ 
@@ -51,5 +68,7 @@ install(DIRECTORY config/
 install(DIRECTORY launch/
   DESTINATION share/${PROJECT_NAME}/launch)
 
+  install(DIRECTORY description/
+  DESTINATION share/${PROJECT_NAME}/description)
 
 ament_package()
