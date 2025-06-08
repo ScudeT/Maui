@@ -11,20 +11,11 @@ def generate_launch_description():
     
     ld = LaunchDescription()
 
-    default_config_arg = os.path.join( # Path to parameters
+    config_file = os.path.join( # Path to parameters
         get_package_share_directory('parietal_lobe'),
         'config', 
         'Thalamus.yaml'
     )
-
-    config_arg = DeclareLaunchArgument(
-        'config_file',
-        default_value = default_config_arg,
-        description='Full path to the YAML configuration file'
-    )
-    ld.add_action(config_arg)
-
-    config_file = LaunchConfiguration('config_file')
 
     # -------------- Start Proprioception ----------------- #
 

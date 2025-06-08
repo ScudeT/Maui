@@ -13,20 +13,11 @@ def generate_launch_description():
     
     ld = LaunchDescription()
 
-    override_config_arg = os.path.join( # Path to parameters
+    config_file = os.path.join( # Path to parameters
         get_package_share_directory('cerebellum'),
         'config', 
         'Depth&AttitudeController.yaml'
     )
-
-    config_arg = DeclareLaunchArgument(
-        'config_file',
-        default_value = override_config_arg,
-        description='Full path to the YAML configuration file'
-    )
-    ld.add_action(config_arg)
-
-    config_file = LaunchConfiguration('config_file')
 
     # ------------------------------------------ #
 
@@ -38,10 +29,7 @@ def generate_launch_description():
                 'launch',  
                 'attitude_controller.launch.py'
             )
-        ),
-        launch_arguments={
-            'config_file': config_file
-        }.items()
+        )
     )
     
     # Add the hardware launch at the beginning

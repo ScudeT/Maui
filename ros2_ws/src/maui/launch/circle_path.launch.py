@@ -42,7 +42,7 @@ def generate_launch_description():
     )
     
     # Add the hardware launch at the beginning
-    ld.add_action(PNS_launch)
+    # ld.add_action(PNS_launch)
 
     
     # ------ Start the Thalamus ---------- #
@@ -65,12 +65,9 @@ def generate_launch_description():
             os.path.join(
                 get_package_share_directory('cerebellum'),
                 'launch',  
-                'attitude_controller.launch.py'
+                'depth_and_attitude_controller.launch.py'
             )
-        ),
-        launch_arguments={
-            'config_file': config_file
-        }.items()
+        )
     )
     
     # Add the hardware launch at the beginning
