@@ -12,7 +12,7 @@ public:
     : Node("joint_state_publisher")
     {
         // Declare and get pwm_range parameter (simplified)
-        this->declare_parameter<std::vector<int64_t>>("pwm_range", {21500, 51500});
+        this->declare_parameter<std::vector<int64_t>>("pwm_range", {19500, 43500});
         pwm_range_ = this->get_parameter("pwm_range").as_integer_array();
 
         pwm_d_ = pwm_range_[1] - pwm_range_[0];

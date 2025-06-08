@@ -43,6 +43,27 @@ def generate_launch_description():
 
     # ------------------------------------------ #
 
+    # ----------IMU to base------------- #
+
+    imu_base = Node(
+        package='parietal_lobe',
+        executable='imu_change_ref',
+        name='imu_base',
+        output='screen',
+        arguments=['--ros-args', '--log-level', 'WARN'],
+        namespace='est',
+        parameters=[config_file],
+        remappings=[
+            ("imu/data_ned","/imu/data"),
+            #---------------#
+            ("imu/data_enu","/imu/data_base"),
+        ]
+    )
+
+    ld.add_action(imu_base)
+
+    # ------------------------------- #
+
     # -------------- Estimates necessary and initialization----------------- #
     
     simple_odom = Node(
@@ -54,7 +75,7 @@ def generate_launch_description():
         arguments=['--ros-args', '--log-level', 'WARN'],
         namespace='est',
         remappings=[
-            ("/imu/data","/imu/data"),
+            ("/imu/data","/imu/data_base"),
             ("/ms5837/pose","/ms5837/pose"),
             #---------------#
             ("odom","odom")

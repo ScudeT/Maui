@@ -25,7 +25,7 @@ public:
     this->declare_parameter<int>("freq", 30);
     this->declare_parameter<std::vector<int>>("angle_range", std::vector<int>{-60, 60});
     this->declare_parameter<std::vector<int>>("pwm_range", std::vector<int>{19500, 43500});
-    this->declare_parameter<std::vector<double>>("start_wing", std::vector<double>{1.0, 0.0, 0.0, 0.0, 0.0});
+    this->declare_parameter<std::vector<double>>("start_wing", std::vector<double>{1.0, 60.0, 0.0, 0.0, 0.0});
     // start_flap now holds the starting values for flap_same and flap_dif
     this->declare_parameter<std::vector<double>>("start_flap", std::vector<double>{0.0, 0.0});
     // New parameter for clamping flap angles

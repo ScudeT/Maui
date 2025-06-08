@@ -96,3 +96,5 @@ ros2 run pwm_pca9685 pwm_wave_node \
 
 ros2 bag play bags/23_05_25/bag_20250523_083627/ \
   --read-ahead-queue-size 2000
+
+scp -r maui@192.168.196.236:/home/maui/Maui/ros2_ws/bags/ C:\Users\tommy\github\Maui\ros2_ws\bags
