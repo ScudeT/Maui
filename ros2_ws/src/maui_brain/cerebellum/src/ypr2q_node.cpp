@@ -39,7 +39,7 @@ private:
 
         geometry_msgs::msg::PoseStamped msg;
         msg.header.stamp = this->now();
-        msg.header.frame_id = "base_link";  // Set frame_id as needed
+        msg.header.frame_id = "odom";  // Set frame_id as needed
         msg.pose.position.x = 0.0;
         msg.pose.position.y = 0.0;
         msg.pose.position.z = 0.0;
@@ -57,9 +57,9 @@ private:
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
     rclcpp::TimerBase::SharedPtr timer_;
 
-    float roll_ = 0.0f;
-    float pitch_ = 0.0f;
-    float yaw_ = 0.0f;
+    double roll_ = 0.0;
+    double pitch_ = 0.0;
+    double yaw_ = 0.0;
 };
 
 int main(int argc, char **argv) {
