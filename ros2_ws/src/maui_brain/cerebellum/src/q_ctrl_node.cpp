@@ -1,7 +1,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <nav_msgs/msg/odometry.hpp>
-#include <geometry_msgs/msg/quaternion.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/vector3.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Vector3.h>
@@ -27,9 +27,9 @@ public:
         // Subscribers
         measure_sub_ = create_subscription<nav_msgs::msg::Odometry>(
             "measure", 10, std::bind(&QControllerNode::measure_callback, this, std::placeholders::_1));
-        setpoint_sub_ = create_subscription<geometry_msgs::msg::Quaternion>(
+        setpoint_sub_ = create_subscription<geometry_msgs::msg::PoseStamped>(
             "setpoint", 10, std::bind(&QControllerNode::setpoint_callback, this, std::placeholders::_1));
-        
+
         // Timer
         timer_ = create_wall_timer(
             std::chrono::milliseconds(period_ms),
@@ -47,13 +47,15 @@ private:
     // Publishers & Subscribers
     rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr pub_w_set_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr measure_sub_;
-    rclcpp::Subscription<geometry_msgs::msg::Quaternion>::SharedPtr setpoint_sub_;
+    rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr setpoint_sub_;
     rclcpp::TimerBase::SharedPtr timer_;
 
     // Callbacks
-    void setpoint_callback(const geometry_msgs::msg::Quaternion::SharedPtr msg) {
-        q_set_ = tf2::Quaternion(msg->x, msg->y, msg->z, msg->w);
+    void setpoint_callback(const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
+        const auto& q = msg->pose.orientation;
+        q_set_ = tf2::Quaternion(q.x, q.y, q.z, q.w);
     }
+
 
     void measure_callback(const nav_msgs::msg::Odometry::SharedPtr msg) {
         q_mes_ = tf2::Quaternion(msg->pose.pose.orientation.x,

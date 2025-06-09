@@ -1,13 +1,13 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float32.hpp>
-#include <geometry_msgs/msg/quaternion.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 
 #define DEG2RAD(x) ((x) * M_PI / 180.0)
 
-class EulerToQuaternionNode : public rclcpp::Node {
+class EulerToPoseNode : public rclcpp::Node {
 public:
-    EulerToQuaternionNode() : Node("euler_to_quaternion_node") {
+    EulerToPoseNode() : Node("euler_to_pose_node") {
         roll_sub_ = this->create_subscription<std_msgs::msg::Float32>(
             "roll", 10, [this](const std_msgs::msg::Float32::SharedPtr msg) {
                 roll_ = DEG2RAD(msg->data);
@@ -23,12 +23,12 @@ public:
                 yaw_ = DEG2RAD(msg->data);
             });
 
-        quat_pub_ = this->create_publisher<geometry_msgs::msg::Quaternion>(
-            "q", 10);
+        pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+            "q", 10);  // Still publishing on topic "q" but as Pose
 
         timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(100),  // 10 Hz
-            std::bind(&EulerToQuaternionNode::timerCallback, this));
+            std::chrono::milliseconds(100),
+            std::bind(&EulerToPoseNode::timerCallback, this));
     }
 
 private:
@@ -37,19 +37,24 @@ private:
         q.setRPY(roll_, pitch_, yaw_);
         q.normalize();
 
-        geometry_msgs::msg::Quaternion msg;
-        msg.x = q.x();
-        msg.y = q.y();
-        msg.z = q.z();
-        msg.w = q.w();
+        geometry_msgs::msg::PoseStamped msg;
+        msg.header.stamp = this->now();
+        msg.header.frame_id = "base_link";  // Set frame_id as needed
+        msg.pose.position.x = 0.0;
+        msg.pose.position.y = 0.0;
+        msg.pose.position.z = 0.0;
+        msg.pose.orientation.x = q.x();
+        msg.pose.orientation.y = q.y();
+        msg.pose.orientation.z = q.z();
+        msg.pose.orientation.w = q.w();
 
-        quat_pub_->publish(msg);
+        pose_pub_->publish(msg);
     }
 
     rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr roll_sub_;
     rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr pitch_sub_;
     rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr yaw_sub_;
-    rclcpp::Publisher<geometry_msgs::msg::Quaternion>::SharedPtr quat_pub_;
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
     rclcpp::TimerBase::SharedPtr timer_;
 
     float roll_ = 0.0f;
@@ -59,7 +64,8 @@ private:
 
 int main(int argc, char **argv) {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<EulerToQuaternionNode>());
+    rclcpp::spin(std::make_shared<EulerToPoseNode>());
     rclcpp::shutdown();
     return 0;
 }
+
