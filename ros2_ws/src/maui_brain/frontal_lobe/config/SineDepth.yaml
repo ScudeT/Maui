@@ -1,0 +1,11 @@
+path/sine_depth:
+  ros__parameters:
+    freq: 30.0
+    amplitude: 0.0
+    period: 20.0
+    offset: -0.3
+    start_from: 0.0
+    delay: 3.0
+    upper_limit: 0.0
+    lower_limit: -1.0
+    topic_name: "depth/z_set"

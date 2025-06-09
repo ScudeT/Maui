@@ -2,7 +2,17 @@ path/circle_yaw:
   ros__parameters:
     freq: 30
     wz: 1.0
-    
+
+path/sine_depth:
+  ros__parameters:
+    freq: 30.0
+    amplitude: 0.0
+    period: 20.0
+    offset: -0.3
+    start_from: 0.0
+    delay: 3.0
+    upper_limit: 0.0
+    lower_limit: -1.0
 
 eyes:
   ros__parameters:
@@ -16,7 +26,8 @@ reflex:
       - '/depth/reset_ctrl'
       - '/input/start_and_stop'
       - '/fatique'
-      #- '/path/circle_reset'
+      - '/path/depth_toggle'
+      - '/path/yaw_toggle'
 
 memory:
   ros__parameters:

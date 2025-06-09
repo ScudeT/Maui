@@ -50,17 +50,21 @@ class YawIntegratorNode(Node):
             self.get_logger().info(f'Initial yaw set from measure: {yaw:.3f} rad')
 
     def timer_callback(self):
-        if not self.running or not self.initialized:
-            return
-
         now = self.get_clock().now()
         dt = (now - self.last_time).nanoseconds / 1e9
         self.last_time = now
 
-        self.current_yaw += self.wz * dt
-
         msg = Float32()
-        msg.data = self.current_yaw
+
+        if self.running:
+            self.current_yaw += self.wz * dt
+            msg.data = self.current_yaw
+        else:
+            if self.latest_measure_yaw is not None:
+                msg.data = self.latest_measure_yaw
+            else:
+                return  # Nothing to publish yet
+
         self.yaw_pub.publish(msg)
 
     def trigger_callback(self, request, response):

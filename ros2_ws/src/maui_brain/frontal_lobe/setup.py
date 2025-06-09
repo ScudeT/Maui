@@ -48,6 +48,7 @@ setup(
     entry_points={
         'console_scripts': [
             'yaw_integrator_node = frontal_lobe.yaw_integrator_node:main',
+            'sine_pub_node = frontal_lobe.sine_pub_node:main',
         ],
     },
 )

@@ -16,7 +16,7 @@ def generate_launch_description():
     override_config_arg = os.path.join( # Path to parameters
         get_package_share_directory('frontal_lobe'),
         'config', 
-        'CirclePath.yaml'
+        'SineDepth.yaml'
     )
 
     config_arg = DeclareLaunchArgument(
@@ -31,27 +31,22 @@ def generate_launch_description():
     # ------------------------------------------ #
     # ------------------------------------------ #
 
-    yaw_setter = Node(
+    depth_setter = Node(
         package='frontal_lobe',
-        executable='yaw_integrator_node',
-        name='circle_yaw',
+        executable='sine_pub_node',
+        name='depth_sine',
         parameters=[config_file],
-        arguments=['--ros-args', '--log-level', 'INFO'],
+        arguments=['--ros-args', '--log-level', 'WARN'],
         output='screen',
         namespace='path',
         remappings=[
-           ('measure', '/est/odom'), 
-            
-            # -------------------------- #       
-            ('yaw', '/attitude/yaw_set'), 
-            # -------------------------- #
-            
-            ('trigger', 'yaw_toggle'),
+            ('sin', '/depth/z_set'),
+            ('toggle_sinusoid', 'depth_toggle'),
         ]
     )
 
     # Add the included launch description to your LaunchDescription
-    ld.add_action(yaw_setter)
+    ld.add_action(depth_setter)
     # ------------------------------------------ #
     
     

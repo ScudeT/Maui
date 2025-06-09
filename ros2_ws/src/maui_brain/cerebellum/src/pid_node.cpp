@@ -23,6 +23,7 @@ public:
     this->declare_parameter<std::vector<double>>("pid_settings", default_pid);
     this->declare_parameter<std::string>("feedback_field", "x");
     this->declare_parameter<int>("freq", 10); // Hz
+    this->declare_parameter<double>("set_0", 0.0); 
 
     auto pid_settings = this->get_parameter("pid_settings").as_double_array();
     if (pid_settings.size() != 6) {
@@ -38,6 +39,8 @@ public:
     double deriv_filter_coef = pid_settings[5];
     int frequency = this->get_parameter("freq").as_int();
     double dt = 1.0 / frequency;
+
+    setpoint_ = this->get_parameter("set_0").as_double();
 
     ref_sub_ = this->create_subscription<std_msgs::msg::Float32>(
       "reference", 10,

@@ -30,7 +30,7 @@ def generate_launch_description():
     )
     
     # Add the hardware launch at the beginning
-    ld.add_action(Proprioception_launch)
+    # ld.add_action(Proprioception_launch)
 
     # ------------------------------------------ #
 
