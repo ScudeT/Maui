@@ -24,6 +24,7 @@ public:
     this->declare_parameter<std::string>("feedback_field", "x");
     this->declare_parameter<int>("freq", 10); // Hz
     this->declare_parameter<double>("set_0", 0.0); 
+    this->declare_parameter<int>("update_freq", 1); // Hz
 
     auto pid_settings = this->get_parameter("pid_settings").as_double_array();
     if (pid_settings.size() != 6) {
@@ -38,7 +39,8 @@ public:
     double output_max = pid_settings[4];
     double deriv_filter_coef = pid_settings[5];
     int frequency = this->get_parameter("freq").as_int();
-    double dt = 1.0 / frequency;
+    double dt_ = 1.0 / frequency;
+    int period_ms = static_cast<int>(1000.0 * dt_);
 
     setpoint_ = this->get_parameter("set_0").as_double();
 
@@ -57,11 +59,17 @@ public:
 
     control_pub_ = this->create_publisher<std_msgs::msg::Float32>("control_value", 10);
 
-    pid_ = std::make_shared<PIDController>(kp, ki, kd, dt, min, output_max, deriv_filter_coef);
+    pid_ = std::make_shared<PIDController>(kp, ki, kd, dt_, min, output_max, deriv_filter_coef);
 
     timer_ = this->create_wall_timer(
-      std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::duration<double>(dt)),
+      std::chrono::milliseconds(period_ms),
       std::bind(&PIDControllerNode::timerCallback, this));
+
+    int update_freq = this->get_parameter("update_freq").as_int();
+    int update_period_ms = static_cast<int>(1000.0 / update_freq);
+    update_ = this->create_wall_timer(
+      std::chrono::milliseconds(update_period_ms),
+      std::bind(&PIDControllerNode::updateParams, this));
 
     reset_service_ = this->create_service<std_srvs::srv::Trigger>(
       "reset_controller",
@@ -115,12 +123,31 @@ private:
     RCLCPP_INFO(this->get_logger(), "PID controller state has been reset.");
   }
 
+  void updateParams(){
+    auto pid_settings = this->get_parameter("pid_settings").as_double_array();
+    if (pid_settings.size() != 6) {
+      RCLCPP_FATAL(this->get_logger(), "pid_settings must contain exactly 6 values.");
+      return;
+    }
+
+    double kp = pid_settings[0];
+    double ki = pid_settings[1];
+    double kd = pid_settings[2];
+    double min = pid_settings[3];
+    double output_max = pid_settings[4];
+    double deriv_filter_coef = pid_settings[5];
+
+    pid_->updateCoefficients(kp, ki, kd, min, output_max, deriv_filter_coef);
+  }
+
   rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr ref_sub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr feedback_sub_;
   rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr control_pub_;
   rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::TimerBase::SharedPtr update_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr reset_service_;
   std::shared_ptr<PIDController> pid_;
+  double dt_{0.1}; // Default to 10 Hz
 
   double setpoint_{0.0};
   double feedback_{0.0};

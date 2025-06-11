@@ -42,7 +42,7 @@ def generate_launch_description():
         executable='w_ctrl_node',
         name='w_ctrl',
         parameters=[config_file],
-        arguments=['--ros-args', '--log-level', 'WARN'],
+        arguments=['--ros-args', '--log-level', 'INFO'],
         output='screen',
         namespace='attitude',
         remappings=[

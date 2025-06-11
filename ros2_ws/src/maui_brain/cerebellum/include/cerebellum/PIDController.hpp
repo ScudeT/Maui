@@ -86,21 +86,20 @@ public:
    * @param output_max New maximum output limit.
    * @param deriv_filter_coef New derivative filter coefficient.
    */
-  void updateCoefficients(double kp, double ki, double kd, double dt,
+  void updateCoefficients(double kp, double ki, double kd,
                           double output_min, double output_max, double deriv_filter_coef) {
-    kp_ = kp;
-    ki_ = ki;
-    kd_ = kd;
-    dt_ = dt;
-    output_min_ = output_min;
-    output_max_ = output_max;
-    deriv_filter_coef_ = deriv_filter_coef;
+    kp_ = double(kp);
+    ki_ = double(ki);
+    kd_ = double(kd);
+    output_min_ = double(output_min);
+    output_max_ = double(output_max);
+    deriv_filter_coef_ = double(deriv_filter_coef);
   }
 
   void updateCoefficients(double kp, double ki, double kd) {
-    kp_ = kp;
-    ki_ = ki;
-    kd_ = kd;
+    kp_ = double(kp);
+    ki_ = double(ki);
+    kd_ = double(kd);
   } 
 
   void reset(){

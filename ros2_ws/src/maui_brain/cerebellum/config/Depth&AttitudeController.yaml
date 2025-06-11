@@ -2,6 +2,6 @@ depth/ctrl:
   ros__parameters:
     freq: 30
     # PID settings: | kp | ki | kd | min | max | filter (0 = full filtering, 1 = no filtering) |
-    pid_settings: [100.0, 0.0, 0.1, -30.0, 30.0, 0.9]  # PID settings for z
+    pid_settings: [100.0, 0.0, 0.0, -40.0, 40.0, 0.5]  # PID settings for z
     feedback_field: 'z'  # Field in the odom message to use for depth control
     set_0: 0.0  # Setpoint for depth control
