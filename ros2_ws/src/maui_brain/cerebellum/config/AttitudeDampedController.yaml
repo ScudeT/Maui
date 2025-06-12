@@ -1,0 +1,21 @@
+attitude/q_ctrl: 
+  ros__parameters:
+    freq: 30
+    attitude_gains: -1.0  # Kp for attitude control in roll, pitch, yaw
+
+attitude/w_ctrl:
+  ros__parameters:
+    freq: 30
+     # PID settings: | kp | ki | kd | min | max | filter (0 = full filtering, 1 = no filtering) |
+    wx_pid_settings: [0.1, 0.0, 0.0, -20.0, 20.0, 0.5]  # alpha_d
+    wy_pid_settings: [-0.6, 0.0, 0.0, -45.0, 45.0, 0.5]  # theta_m
+    wz_pid_settings: [0.6, 0.0, 0.0, -90.0, 90.0, 0.5]  # A_d
+
+attitude/to_bmf:
+  ros__parameters:
+    freq: 30
+    Dist_x_amp: 0.0
+    Dist_y_amp: 0.0
+    Dist_z_amp: 0.0
+    frequency: 0.5
+    sampling_rate: 1.0
