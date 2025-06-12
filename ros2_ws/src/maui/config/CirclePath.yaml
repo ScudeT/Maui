@@ -52,6 +52,7 @@ memory:
       - '/attitude/pitch_set:std_msgs/msg/Float32'
       - '/attitude/yaw_set:std_msgs/msg/Float32'
       - '/depth/z_set:std_msgs/msg/Float32'
+      - '/param_dump:std_msgs/msg/String'
     parent_folder: 'bags/circle_path'
 
 fatique:

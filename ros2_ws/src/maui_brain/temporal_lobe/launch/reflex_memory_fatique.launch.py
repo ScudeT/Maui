@@ -60,6 +60,22 @@ def generate_launch_description():
 
     # ------------------------------------------ #
 
+    params = Node(
+        package='temporal_lobe',
+        executable='param_dumper_node',
+        name='param_dumper',
+        output='screen',
+        parameters=[config_file],
+        arguments=['--ros-args', '--log-level', 'WARN'],
+        remappings=[
+            ('/parameter_dump', '/param_sump'),
+        ]
+    )
+
+    ld.add_action(memory)
+
+    # ------------------------------------------ #
+
     fatique = Node(
         package='temporal_lobe',
         executable='button_timeout_node',
