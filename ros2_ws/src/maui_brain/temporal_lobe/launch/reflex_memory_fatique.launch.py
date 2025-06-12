@@ -68,11 +68,11 @@ def generate_launch_description():
         parameters=[config_file],
         arguments=['--ros-args', '--log-level', 'WARN'],
         remappings=[
-            ('/parameter_dump', '/param_sump'),
+            ('/parameter_dump', '/param_dump'),
         ]
     )
 
-    ld.add_action(memory)
+    ld.add_action(params)
 
     # ------------------------------------------ #
 
