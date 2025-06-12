@@ -8,9 +8,9 @@ path/depth_sine:
     freq: 30.0
     amplitude: 0.0
     period: 20.0
-    offset: 0.0
-    start_from: 0.0
-    delay: 1.0
+    offset: -0.05
+    start_from: -0.05
+    delay: 0.0
     upper_limit: 0.0
     lower_limit: -1.0
 

@@ -88,7 +88,7 @@ private:
         // Set the pose
         pose_msg.pose.pose.position.x = 0.0;
         pose_msg.pose.pose.position.y = 0.0;
-        pose_msg.pose.pose.position.z = depth + offset_;
+        pose_msg.pose.pose.position.z = -depth + offset_;
 
         // Assuming no specific orientation known, set quaternion for no rotation
         pose_msg.pose.pose.orientation.x = 0.0;
