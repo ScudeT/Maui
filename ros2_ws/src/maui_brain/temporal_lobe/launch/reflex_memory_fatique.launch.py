@@ -59,21 +59,6 @@ def generate_launch_description():
     ld.add_action(memory)
 
     # ------------------------------------------ #
-
-    params = Node(
-        package='temporal_lobe',
-        executable='param_dumper_node',
-        name='param_dumper',
-        output='screen',
-        parameters=[config_file],
-        arguments=['--ros-args', '--log-level', 'WARN'],
-        remappings=[
-            ('/parameter_dump', '/param_dump'),
-        ]
-    )
-
-    ld.add_action(params)
-
     # ------------------------------------------ #
 
     fatique = Node(
