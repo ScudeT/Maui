@@ -80,17 +80,21 @@ RUN pip install gpsd-py3 opencv-python
 #######################################
 
 ## ROS PACKAGES #####
-RUN apt-get update && apt-get install -y ros-jazzy-gps-umd                 
+RUN apt-get update && apt-get install -y ros-jazzy-gps-umd  
+RUN apt-get update && apt-get install -y ros-jazzy-rviz2           
 RUN apt-get update && apt-get install -y ros-jazzy-rviz-satellite 
 RUN apt-get update && apt-get install -y ros-jazzy-rviz-imu-plugin 
 RUN apt-get update && apt-get install -y ros-jazzy-rviz-2d-overlay-plugins 
 RUN apt-get update && apt-get install -y ros-jazzy-joint-state-publisher-gui
+RUN apt-get update && apt-get install -y ros-jazzy-robot-state-publisher
+RUN apt-get update && apt-get install -y ros-jazzy-urdf
 RUN apt-get update && apt-get install -y ros-jazzy-foxglove-bridge 
 RUN apt-get update && apt-get install -y ros-jazzy-ros2-control 
 RUN apt-get update && apt-get install -y ros-jazzy-ros2-controllers 
 RUN apt-get update && apt-get install -y ros-jazzy-robot-localization
 RUN apt-get update && apt-get install -y ros-jazzy-rqt ros-jazzy-rqt-common-plugins
 RUN apt-get update && apt-get install -y ros-jazzy-tf2 ros-jazzy-tf2-ros
+
 
 # Set up entrypoint and default command
 RUN chmod 777 -R /home/${USERNAME}/ros2_ws
