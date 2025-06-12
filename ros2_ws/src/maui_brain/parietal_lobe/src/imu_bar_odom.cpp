@@ -53,7 +53,7 @@ public:
     double cutoff_freq = this->get_parameter("gyro_cutoff").as_double();
     
     kf_ = - (M_PI * cutoff_freq * dt - 1.0)/ (M_PI * cutoff_freq * dt +1.0);
-    kr_ = - (M_PI * cutoff_freq * dt)/ (M_PI * cutoff_freq * dt + 1.0);
+    kr_ = + (M_PI * cutoff_freq * dt)/ (M_PI * cutoff_freq * dt + 1.0);
 
     // Inizializza flag
     received_imu_ = false;

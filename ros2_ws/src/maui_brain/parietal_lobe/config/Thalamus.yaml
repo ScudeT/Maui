@@ -6,6 +6,6 @@ est/imu_base:
 est/simple_odom:
   ros__parameters:
     publish_rate: 50.0
-    gyro_cutoff: 0.5
+    gyro_cutoff: 1.0
     header_frame: "odom"
     child_frame: "base_link"
