@@ -36,7 +36,7 @@ ms5837:
   ros__parameters:
     freq: 50.0
     frame_id: 'bar_link'
-    offset: -0.08
+    offset: 0.0
     variance: 0.000000025
 
 pca9685:

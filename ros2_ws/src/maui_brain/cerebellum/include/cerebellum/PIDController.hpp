@@ -104,8 +104,8 @@ public:
 
     if (verbose_) {
         RCLCPP_INFO(rclcpp::get_logger("PIDController"),
-            "set: %.3f, mes: %.3f, error: %.3f, output: %.3f, P: %.3f, I: %.3f, D: %.3f",
-            setpoint, measurement, error, output, P, I, D);
+            "error: %.3f, output: %.3f, P: %.3f, I: %.3f, D: %.3f",
+            error, output, P, I, D);
     }
 
     return output;
