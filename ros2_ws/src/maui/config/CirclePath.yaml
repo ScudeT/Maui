@@ -1,7 +1,7 @@
 path/circle_yaw:
   ros__parameters:
     freq: 30
-    wz: 0.5
+    wz: 0.0
 
 path/depth_sine:
   ros__parameters:
