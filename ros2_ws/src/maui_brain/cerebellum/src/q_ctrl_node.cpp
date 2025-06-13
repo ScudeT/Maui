@@ -76,7 +76,9 @@ private:
         // Compute angular velocity setpoint from quaternion error
         // tf2::Vector3 w_sp = 2.0 * Kp_ * q_err.getAxis() * q_err.getAngle();
         tf2::Quaternion q_u =  tf2::Quaternion(0, 0, 0, 1);
-        tf2::Quaternion w_sp =  q_u.inverse()*q_err;
+        tf2::Quaternion w_sp_g =  q_u.inverse()*q_err;
+        tf2::Quaternion w_sp =  q_mes_.inverse()*q_err*q_mes_;
+
 
         tf2::Vector3 w_sp_vec(-2.0*Kp_*w_sp.getX(), -2.0*Kp_*w_sp.getY(), -2.0*Kp_*w_sp.getZ());
 
