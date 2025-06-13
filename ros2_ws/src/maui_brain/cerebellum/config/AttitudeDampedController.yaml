@@ -17,5 +17,5 @@ attitude/to_bmf:
     Dist_x_amp: 0.0
     Dist_y_amp: 0.0
     Dist_z_amp: 0.0
-    frequency: 0.5
+    frequency: 0.8
     sampling_rate: 1.0

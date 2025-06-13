@@ -19,12 +19,14 @@ public:
    * @param deriv_filter_coef Derivative filter coefficient (0 = full filtering, 1 = no filtering).
    */
   PIDController(double kp, double ki, double kd, double dt,
-                double output_min, double output_max, double deriv_filter_coef)
+                double output_min, double output_max, double cutoff_freq)
     : kp_(kp), ki_(ki), kd_(kd), dt_(dt),
       output_min_(output_min), output_max_(output_max),
-      deriv_filter_coef_(deriv_filter_coef),
       prev_error_(0.0), integral_(0.0), prev_derivative_(0.0)
-  {}
+  {
+    kf_ = - (M_PI * cutoff_freq * dt_ - 1.0)/ (M_PI * cutoff_freq * dt_ +1.0);
+    kr_ = + (M_PI * cutoff_freq * dt_)/ (M_PI * cutoff_freq * dt_ + 1.0);
+  }
 
   void setVerbose(bool verbose) { verbose_ = verbose; }
 
@@ -52,10 +54,8 @@ public:
       integral_ = I / ki_;
     }
 
-    // Derivative term with low-pass filtering
-    double derivative_raw = (error - prev_error_) / dt_;
-    double derivative = deriv_filter_coef_ * derivative_raw +
-                        (1.0 - deriv_filter_coef_) * prev_derivative_;
+
+    double derivative = filter_error(error)/ dt_;
     double D = kd_ * derivative;
 
     // Combine terms and clamp final output
@@ -75,6 +75,62 @@ public:
     return output;
   }
 
+  double compute(double error) {
+    
+    // Proportional term
+    double P = kp_ * error;
+
+    // Integral term with anti-windup (by clamping)
+    integral_ += error * dt_;
+    double I = ki_ * integral_;
+    double max_I = output_max_ - P;
+    double min_I = output_min_ - P;
+    I = std::clamp(I, min_I, max_I);
+    if (ki_ != 0.0) {
+      integral_ = I / ki_;
+    }
+
+
+    double derivative = filter_error(error)/ dt_;
+    double D = kd_ * derivative;
+
+    // Combine terms and clamp final output
+    double output = P + I + D;
+    output = std::clamp(output, output_min_, output_max_);
+
+    // Update internal state
+    prev_error_ = error;
+    prev_derivative_ = derivative;
+
+    if (verbose_) {
+        RCLCPP_INFO(rclcpp::get_logger("PIDController"),
+            "set: %.3f, mes: %.3f, error: %.3f, output: %.3f, P: %.3f, I: %.3f, D: %.3f",
+            setpoint, measurement, error, output, P, I, D);
+    }
+
+    return output;
+  }
+
+  double filter_error(const double& raw_err)
+  {
+
+    // Se prima chiamata: inizializza
+    if (!prev_err_set_) {
+      prev_err_filtered_err_ = raw_err;
+      prev_raw_err_ = raw_err;
+      prev_err_set_ = true;
+      return raw_err;
+    }
+
+    double err_filtered;
+    err_filtered = kf_ * prev_err_filtered_err_ + kr_ * (raw_err + prev_raw_err_);
+
+    prev_err_filtered_err_ = err_filtered;
+    prev_raw_err_ = raw_err;
+
+    return err_filtered;
+  }
+
   /**
    * @brief Update the PID coefficients and parameters at runtime.
    * 
@@ -87,13 +143,14 @@ public:
    * @param deriv_filter_coef New derivative filter coefficient.
    */
   void updateCoefficients(double kp, double ki, double kd,
-                          double output_min, double output_max, double deriv_filter_coef) {
+                          double output_min, double output_max, double cutoff_freq) {
     kp_ = double(kp);
     ki_ = double(ki);
     kd_ = double(kd);
     output_min_ = double(output_min);
     output_max_ = double(output_max);
-    deriv_filter_coef_ = double(deriv_filter_coef);
+    kf_ = - (M_PI * cutoff_freq * dt_ - 1.0)/ (M_PI * cutoff_freq * dt_ +1.0);
+    kr_ = + (M_PI * cutoff_freq * dt_)/ (M_PI * cutoff_freq * dt_ + 1.0);                       
   }
 
   void updateCoefficients(double kp, double ki, double kd) {
@@ -122,7 +179,12 @@ private:
   double output_max_;
 
   // Derivative low-pass filter coefficient
-  double deriv_filter_coef_;
+  double kf_;
+  double kr_;
+  double prev_err_filtered_err_;
+  double prev_raw_err_;
+  bool prev_err_set_ = false;
+  
 
   // Internal state variables
   double prev_error_;
