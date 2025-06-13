@@ -71,7 +71,7 @@ class SinePublisher(Node):
                 # Delay non ancora trascorso → non pubblica nulla
                 return
             t = elapsed - self.delay
-            value = self.amplitude * math.sin(2 * math.pi * t / self.period + self.phase) + self.offset
+            value = self.amplitude * math.cos(2 * math.pi * t / self.period + self.phase) + self.offset
             value = min(max(value, self.lower_limit), self.upper_limit)
             msg.data = value
         else:
