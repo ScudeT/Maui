@@ -20,7 +20,7 @@ def generate_launch_description():
     maui_xacro = os.path.join( # Path to parameters
         get_package_share_directory('parietal_lobe'),
         'description', 
-        'maui.urdf.xacro'
+        'maui_online.urdf.xacro'
     )
     maui_description = xacro.process_file(maui_xacro).toxml()
 
