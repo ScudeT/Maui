@@ -1,0 +1,47 @@
+attitude/w_ctrl:
+  ros__parameters:
+    freq: 30
+    # PID settings: | kp | ki | kd | min | max | filter (0 = full filtering, 1 = no filtering) |
+    wx_pid_settings: [0.1, 0.0, 0.0, -20.0, 20.0, 0.08]  # alpha_d
+    wy_pid_settings: [-0.6, 0.0, 0.0, -45.0, 45.0, 0.08]  # theta_m
+    wz_pid_settings: [2.5, 0.2, 0.0, -90.0, 90.0, 0.08]  # A_d
+
+attitude/w_ref_test_node:
+  ros__parameters:
+    delay: 2.0
+    command: [0.0,0.0,1.0]
+
+attitude/w_record:
+  ros__parameters:
+    image_namee: 'wz_plot'
+
+reflex:
+  ros__parameters:
+    service_names: 
+      - '/record'
+      - '/attitude/reset_ctrl'
+      - '/input/start_and_stop'
+      - '/fatique'
+
+memory:
+  ros__parameters:
+    topics:
+      - '/button_state:std_msgs/msg/Bool'
+      - '/command:std_msgs/msg/Int32MultiArray'
+      - '/input/omega_m:std_msgs/msg/Float32'
+      - '/input/A_m:std_msgs/msg/Float32'
+      - '/input/A_d:std_msgs/msg/Float32'
+      - '/input/alpha_d:std_msgs/msg/Float32'
+      - '/input/alpha_m:std_msgs/msg/Float32'
+      - '/input/theta_m:std_msgs/msg/Float32'
+      - '/input/theta_d:std_msgs/msg/Float32'
+      - '/imu/data:sensor_msgs/msg/Imu'
+      - '/gps_data:sensor_msgs/msg/NavSatFix'
+      - '/ms5837/pose:geometry_msgs/msg/PoseWithCovarianceStamped'
+      - '/est/odom:nav_msgs/msg/Odometry'
+      - '/depth/z_set:std_msgs/msg/Float32'
+    parent_folder: 'bags/circle_path'
+
+fatique:
+  ros__parameters:
+    time_out: 30.0

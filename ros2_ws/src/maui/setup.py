@@ -49,9 +49,11 @@ setup(
     entry_points={
         'console_scripts': [
             'comand_test_node = maui.comand_test_node:main',
+            'vector3_test_node = maui.vector3_test_node:main',
             'attitude_test_node = maui.attitude_test_node:main',
             'attitude_debug_node = maui.attitude_debug_node:main',
             'odom_test_node = maui.odom_test_node:main',
+            'odom_w_plot_node = maui.odom_w_plot_node:main',
         ],
     },
 )
