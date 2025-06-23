@@ -1,0 +1,60 @@
+path/gps_follower:
+  ros__parameters:
+    threshold: 3.0
+    points: [ 45.850235,9.396081, 45.859799,9.396632 ]
+
+path/depth_sine:
+  ros__parameters:
+    freq: 30.0
+    amplitude: 0.1
+    period: 20.0
+    offset: -0.15
+    start_from: 0.05
+    delay: 3.0
+    upper_limit: 0.0
+    lower_limit: -1.0
+
+eyes:
+  ros__parameters:
+    capture_frequency: 10.0
+
+reflex:
+  ros__parameters:
+    service_names: 
+      - '/record'
+      - '/attitude/reset_ctrl'
+      - '/depth/reset_ctrl'
+      - '/input/start_and_stop'
+      - '/fatique'
+      - '/path/depth_toggle'
+      - '/path/yaw_toggle'
+
+memory:
+  ros__parameters:
+    topics:
+      - '/button_state:std_msgs/msg/Bool'
+      - '/command:std_msgs/msg/Int32MultiArray'
+      - '/input/omega_m:std_msgs/msg/Float32'
+      - '/input/A_m:std_msgs/msg/Float32'
+      - '/input/A_d:std_msgs/msg/Float32'
+      - '/input/alpha_d:std_msgs/msg/Float32'
+      - '/input/alpha_m:std_msgs/msg/Float32'
+      - '/input/theta_m:std_msgs/msg/Float32'
+      - '/input/theta_d:std_msgs/msg/Float32'
+      - '/imu/data:sensor_msgs/msg/Imu'
+      - '/gps_data:sensor_msgs/msg/NavSatFix'
+      - '/ms5837/pose:geometry_msgs/msg/PoseWithCovarianceStamped'
+      - '/est/odom:nav_msgs/msg/Odometry'
+#      - '/camera_1:sensor_msgs/msg/Image'
+#      - '/camera_2:sensor_msgs/msg/Image'
+      #- '/attitude/q_ref:geometry_msgs/msg/PoseStamped'
+      - '/attitude/roll_set:std_msgs/msg/Float32'
+      - '/attitude/pitch_set:std_msgs/msg/Float32'
+      - '/attitude/yaw_set:std_msgs/msg/Float32'
+      - '/depth/z_set:std_msgs/msg/Float32'
+     # - '/param_dump:std_msgs/msg/String'
+    parent_folder: 'bags/circle_path'
+
+fatique:
+  ros__parameters:
+    time_out: 30.0
