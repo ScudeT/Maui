@@ -15,9 +15,7 @@ services:
       - "/home/maui/Maui/ros2_ws/bags:/home/ros/ros2_ws/bags" 
       - /tmp/.X11-unix:/tmp/.X11-unix  # Mounts the X11 socket
       - $HOME/.Xauthority:/home/ros/.Xauthority  # Mounts your .Xauthority file
-      - /dev:/dev  # Access devices
-      - /var/run/gpsd.sock:/var/run/gpsd.sock:ro # Mounts the GPSD socket 
-      
+      - /dev:/dev  # Access devices      
     devices:
       - /dev/i2c-1:/dev/i2c-1
       - /dev/ttyAMA0:/dev/ttyAMA0
