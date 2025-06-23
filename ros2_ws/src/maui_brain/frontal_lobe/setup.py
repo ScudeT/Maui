@@ -49,6 +49,7 @@ setup(
         'console_scripts': [
             'yaw_integrator_node = frontal_lobe.yaw_integrator_node:main',
             'sine_pub_node = frontal_lobe.sine_pub_node:main',
+            'gps_target_follower_node = frontal_lobe.gps_target_follower_node:main',
         ],
     },
 )
