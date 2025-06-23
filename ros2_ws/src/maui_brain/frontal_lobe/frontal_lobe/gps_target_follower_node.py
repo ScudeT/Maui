@@ -5,6 +5,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Float32
+from rcl_interfaces.msg import ParameterDescriptor, ParameterType
 
 # Earth radius in meters
 EARTH_RADIUS = 6371000.0
@@ -40,19 +41,24 @@ def bearing_to_target(lat1: float, lon1: float, lat2: float, lon2: float) -> flo
         math.sin(phi1) * math.cos(phi2) * math.cos(dlambda)
     bearing = math.atan2(y, x)
     # Convert from radians (-pi,pi) to [0,2*pi)
-    bearing = (bearing + 2 * math.pi) % (2 * math.pi)
-    return bearing
+    return (bearing + 2 * math.pi) % (2 * math.pi)
 
 
 class NavSatFollower(Node):
     def __init__(self):
         super().__init__('navsat_follower')
 
-        # Declare parameters
-        self.declare_parameter('points', [])
-        self.declare_parameter('threshold', 2.0)  # meters
+        # Parameter descriptors
+        points_desc = ParameterDescriptor(type=ParameterType.PARAMETER_DOUBLE_ARRAY,
+                                          description='Flat list of latitude, longitude pairs')
+        thresh_desc = ParameterDescriptor(type=ParameterType.PARAMETER_DOUBLE,
+                                          description='Distance threshold in meters')
 
-        # Get parameters
+        # Declare parameters with explicit types
+        self.declare_parameter('points', [], points_desc)
+        self.declare_parameter('threshold', 2.0, thresh_desc)
+
+        # Retrieve parameters
         points_list = self.get_parameter('points').get_parameter_value().double_array_value
         if len(points_list) % 2 != 0:
             self.get_logger().error('Parameter points must be a flat list of lat, lon pairs')
@@ -65,66 +71,58 @@ class NavSatFollower(Node):
         self.threshold: float = self.get_parameter('threshold').get_parameter_value().double_value
         self.current_index = 0
 
-        # Subscriber to GPS navsat_fix
+        # Subscribers and publishers
         self.subscription = self.create_subscription(
             NavSatFix,
             'gps_sensor/navsat',
             self.gps_callback,
             10)
 
-        # Publisher for yaw setpoint
         self.yaw_pub = self.create_publisher(Float32, 'yaw_set', 10)
-
-        # Publisher for current GPS target at 1Hz
         self.target_pub = self.create_publisher(NavSatFix, 'gps_target', 10)
         self.target_timer = self.create_timer(1.0, self.publish_target)
 
-        self.get_logger().info(f'Loaded {len(self.points)} target points, threshold={self.threshold}m')
+        self.get_logger().info(
+            f'Loaded {len(self.points)} target points, threshold={self.threshold} m')
 
     def gps_callback(self, msg: NavSatFix):
         if not self.points:
             self.get_logger().warn('No target points specified')
             return
 
-        lat = msg.latitude
-        lon = msg.longitude
-        target_lat, target_lon = self.points[self.current_index]
+        lat, lon = msg.latitude, msg.longitude
+        tgt_lat, tgt_lon = self.points[self.current_index]
 
-        # Compute distance to current target
-        dist = haversine_distance(lat, lon, target_lat, target_lon)
+        dist = haversine_distance(lat, lon, tgt_lat, tgt_lon)
         self.get_logger().debug(f'Distance to point {self.current_index}: {dist:.2f} m')
 
-        # Check if within threshold
         if dist <= self.threshold:
             self.get_logger().info(f'Reached point {self.current_index}, switching to next')
             self.current_index = (self.current_index + 1) % len(self.points)
 
-        # Compute bearing (yaw) toward target
-        # Use the updated current_index after potential switch
-        target_lat, target_lon = self.points[self.current_index]
-        yaw = bearing_to_target(lat, lon, target_lat, target_lon)
+        # Update target after index change
+        tgt_lat, tgt_lon = self.points[self.current_index]
+        yaw = bearing_to_target(lat, lon, tgt_lat, tgt_lon)
         self.get_logger().debug(f'Publishing yaw: {yaw:.3f} rad')
 
-        # Publish yaw setpoint
         yaw_msg = Float32()
-        yaw_msg.data = float(yaw)
+        yaw_msg.data = yaw
         self.yaw_pub.publish(yaw_msg)
 
     def publish_target(self):
         """
-        Periodically publish the current target waypoint as a NavSatFix message on 'gps_target'.
+        Publish the current target waypoint as NavSatFix on 'gps_target' at 1 Hz.
         """
         if not self.points:
             return
 
-        target_lat, target_lon = self.points[self.current_index]
+        tgt_lat, tgt_lon = self.points[self.current_index]
         msg = NavSatFix()
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = 'gps_target'
-        msg.latitude = target_lat
-        msg.longitude = target_lon
+        msg.latitude = tgt_lat
+        msg.longitude = tgt_lon
         msg.altitude = 0.0
-        # Optional: set covariance or other fields if needed
         self.target_pub.publish(msg)
 
 
