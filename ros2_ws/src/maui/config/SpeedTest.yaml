@@ -13,7 +13,7 @@ attitude/w_ref_test_node:
 
 attitude/w_record:
   ros__parameters:
-    image_namee: 'wz_plot'
+    image_name: 'wz_plot'
 
 reflex:
   ros__parameters:
@@ -22,6 +22,8 @@ reflex:
       - '/attitude/reset_ctrl'
       - '/input/start_and_stop'
       - '/fatique'
+      - '/on_and_off'
+      - '/snap'
 
 memory:
   ros__parameters:
