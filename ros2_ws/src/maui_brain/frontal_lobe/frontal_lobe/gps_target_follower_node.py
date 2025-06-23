@@ -55,7 +55,7 @@ class NavSatFollower(Node):
                                           description='Distance threshold in meters')
 
         # Declare parameters with explicit types
-        self.declare_parameter('points', [], points_desc)
+        self.declare_parameter('points', [ 45.850235,9.396081, 45.859799,9.396632 ], points_desc)
         self.declare_parameter('threshold', 2.0, thresh_desc)
 
         # Retrieve parameters
