@@ -33,7 +33,7 @@ def generate_launch_description():
 
     gps_follower = Node(
         package='frontal_lobe',
-        executable='gps_target_follow_node',
+        executable='gps_target_follower_node',
         name='gps_follower',
         parameters=[config_file],
         arguments=['--ros-args', '--log-level', 'INFO'],
