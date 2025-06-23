@@ -1,0 +1,4 @@
+path/gps_follower:
+  ros__parameters:
+    threshold: 3.0
+    points: [ 45.850235,9.396081, 45.859799,9.396632 ]
