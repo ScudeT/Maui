@@ -47,8 +47,8 @@ class GpsPublisher(Node):
             msg = NavSatFix()
             msg.header.frame_id = "gps_link"
             msg.header.stamp = self.get_clock().now().to_msg()
-            msg.latitude = dmm_to_dd(float(gps_data.lat))
-            msg.longitude = dmm_to_dd(float(gps_data.lon))
+            msg.latitude = float(gps_data.lat)
+            msg.longitude = float(gps_data.lon)
             msg.altitude = float(gps_data.alt)
 
             self.get_logger().info(
