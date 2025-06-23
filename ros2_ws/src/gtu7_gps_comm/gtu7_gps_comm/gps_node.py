@@ -47,8 +47,8 @@ class GpsPublisher(Node):
             msg = NavSatFix()
             msg.header.frame_id = "gps_link"
             msg.header.stamp = self.get_clock().now().to_msg()
-            msg.latitude = float(gps_data.lat)
-            msg.longitude = float(gps_data.lon)
+            msg.latitude = dmm_to_dd(float(gps_data.lat))
+            msg.longitude = dmm_to_dd(float(gps_data.lon))
             msg.altitude = float(gps_data.alt)
 
             self.get_logger().info(
@@ -57,6 +57,11 @@ class GpsPublisher(Node):
             self.publisher_.publish(msg)
         except AttributeError as e:
             self.get_logger().warn(f"GPS data missing expected fields: {e}")
+
+    def dmm_to_dd(val):
+        degrees = int(val // 100)
+        minutes = val - degrees * 100
+        return degrees + minutes / 60
 
 def main(args=None):
     rclpy.init(args=args)
