@@ -3,13 +3,13 @@ from typing import List, Tuple
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Float32
 from rcl_interfaces.msg import ParameterDescriptor, ParameterType
 
 # Earth radius in meters
-EARTH_RADIUS = 6371000.0
-
+earth_radius = 6371000.0
 
 def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
@@ -24,13 +24,12 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
         math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2.0) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
-    return EARTH_RADIUS * c
+    return earth_radius * c
 
 
 def bearing_to_target(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
-    Compute bearing from point 1 to point 2 relative to north (z axis up), returned in radians.
-    0 = North, positive clockwise eastwards.
+    Compute bearing from point 1 to point 2 relative to north (0=North, positive clockwise) in radians.
     """
     phi1 = math.radians(lat1)
     phi2 = math.radians(lat2)
@@ -40,7 +39,6 @@ def bearing_to_target(lat1: float, lon1: float, lat2: float, lon2: float) -> flo
     x = math.cos(phi1) * math.sin(phi2) - \
         math.sin(phi1) * math.cos(phi2) * math.cos(dlambda)
     bearing = math.atan2(y, x)
-    # Convert from radians (-pi,pi) to [0,2*pi)
     return (bearing + 2 * math.pi) % (2 * math.pi)
 
 
@@ -48,46 +46,58 @@ class NavSatFollower(Node):
     def __init__(self):
         super().__init__('navsat_follower')
 
-        # Parameter descriptors
-        points_desc = ParameterDescriptor(type=ParameterType.PARAMETER_DOUBLE_ARRAY,
-                                          description='Flat list of latitude, longitude pairs')
-        thresh_desc = ParameterDescriptor(type=ParameterType.PARAMETER_DOUBLE,
-                                          description='Distance threshold in meters')
+        # Parameters
+        points_desc = ParameterDescriptor(
+            type=ParameterType.PARAMETER_DOUBLE_ARRAY,
+            description='Flat list of [lat, lon] pairs'
+        )
+        thresh_desc = ParameterDescriptor(
+            type=ParameterType.PARAMETER_DOUBLE,
+            description='Distance threshold in meters'
+        )
+        topic_desc = ParameterDescriptor(
+            type=ParameterType.PARAMETER_STRING,
+            description='GPS input topic name'
+        )
 
-        # Declare parameters with explicit types
-        self.declare_parameter('points', [ 45.850235,9.396081, 45.859799,9.396632 ], points_desc)
+        self.declare_parameter('points', [45.850235, 9.396081, 45.859799, 9.396632], points_desc)
         self.declare_parameter('threshold', 2.0, thresh_desc)
+        self.declare_parameter('gps_topic', 'gps_data', topic_desc)
 
-        # Retrieve parameters
-        points_list = self.get_parameter('points').get_parameter_value().double_array_value
-        if len(points_list) % 2 != 0:
-            self.get_logger().error('Parameter points must be a flat list of lat, lon pairs')
+        # Load parameters
+        p = self.get_parameter
+        raw = p('points').get_parameter_value().double_array_value
+        if len(raw) % 2 != 0:
+            self.get_logger().error('Parameter "points" must be a flat list of lat, lon pairs')
             raise ValueError('Invalid points parameter')
 
-        self.points: List[Tuple[float, float]] = []
-        for i in range(0, len(points_list), 2):
-            self.points.append((points_list[i], points_list[i + 1]))
-
-        self.threshold: float = self.get_parameter('threshold').get_parameter_value().double_value
+        self.points: List[Tuple[float, float]] = [
+            (raw[i], raw[i+1]) for i in range(0, len(raw), 2)
+        ]
+        self.threshold = p('threshold').get_parameter_value().double_value
+        self.gps_topic = p('gps_topic').get_parameter_value().string_value
         self.current_index = 0
+
+        # QoSProfile: match publisher (often BEST_EFFORT for sensors)
+        qos = QoSProfile(depth=10, reliability=QoSReliabilityPolicy.BEST_EFFORT)
 
         # Subscribers and publishers
         self.subscription = self.create_subscription(
             NavSatFix,
-            'gps_sensor/navsat',
+            self.gps_topic,
             self.gps_callback,
-            10)
+            qos)
 
         self.yaw_pub = self.create_publisher(Float32, 'yaw_set', 10)
         self.target_pub = self.create_publisher(NavSatFix, 'gps_target', 10)
-        self.target_timer = self.create_timer(1.0, self.publish_target)
+        self.create_timer(1.0, self.publish_target)
 
         self.get_logger().info(
-            f'Loaded {len(self.points)} target points, threshold={self.threshold} m')
+            f'Following {len(self.points)} points; threshold={self.threshold} m; listening on "{self.gps_topic}"')
 
     def gps_callback(self, msg: NavSatFix):
         if not self.points:
-            self.get_logger().warn('No target points specified')
+            self.get_logger().warn('No points configured')
             return
 
         lat, lon = msg.latitude, msg.longitude
@@ -97,22 +107,18 @@ class NavSatFollower(Node):
         self.get_logger().debug(f'Distance to point {self.current_index}: {dist:.2f} m')
 
         if dist <= self.threshold:
-            self.get_logger().info(f'Reached point {self.current_index}, switching to next')
+            self.get_logger().info(
+                f'Reached point {self.current_index} at ({tgt_lat:.6f}, {tgt_lon:.6f})')
             self.current_index = (self.current_index + 1) % len(self.points)
+            tgt_lat, tgt_lon = self.points[self.current_index]
 
-        # Update target after index change
-        tgt_lat, tgt_lon = self.points[self.current_index]
-        yaw = bearing_to_target(lat, lon, tgt_lat, tgt_lon)*180/math.pi  # Convert to degrees
-        self.get_logger().debug(f'Publishing yaw: {yaw:.3f}°')
+        yaw_rad = bearing_to_target(lat, lon, tgt_lat, tgt_lon)
+        yaw_deg = yaw_rad * 180.0 / math.pi
+        self.get_logger().debug(f'Publishing yaw: {yaw_deg:.2f}°')
 
-        yaw_msg = Float32()
-        yaw_msg.data = yaw
-        self.yaw_pub.publish(yaw_msg)
+        self.yaw_pub.publish(Float32(data=yaw_deg))
 
     def publish_target(self):
-        """
-        Publish the current target waypoint as NavSatFix on 'gps_target' at 1 Hz.
-        """
         if not self.points:
             return
 
