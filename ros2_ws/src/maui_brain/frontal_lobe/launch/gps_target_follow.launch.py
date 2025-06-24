@@ -40,7 +40,7 @@ def generate_launch_description():
         output='screen',
         namespace='path',
         remappings=[
-           ('gps_sensor/navsat', '/gps_data'), 
+           ('gps_data', '/gps_data'), 
             
             # -------------------------- #       
             ('yaw_set', '/attitude/yaw_set'), 
