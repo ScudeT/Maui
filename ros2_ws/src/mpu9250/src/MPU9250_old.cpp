@@ -373,31 +373,26 @@ void MPU9250::read_accel_gyro(int16_t* destination) {
     destination[6] = ((int16_t)raw_data[12] << 8) | (int16_t)raw_data[13];
 }
 
-// Replace your existing MPU9250::update_mag() with this corrected version:
 void MPU9250::update_mag() {
     uint8_t buffer[7];
-    i2cBus_.read_bytes(AK8963_ADDRESS, AK8963_XOUT_L, 7, &buffer[0]);
 
-    // raw counts
-    int16_t raw_x = (buffer[1] << 8) | buffer[0];
-    int16_t raw_y = (buffer[3] << 8) | buffer[2];
-    int16_t raw_z = (buffer[5] << 8) | buffer[4];
+    // Read magnetometer data
+    i2cBus_.read_bytes(AK8963_ADDRESS, AK8963_XOUT_L, 7, &buffer[0]); 
 
-    // overflow check
+    int16_t raw_mag_x = (buffer[1] << 8) | buffer[0];
+    int16_t raw_mag_y = (buffer[3] << 8) | buffer[2];
+    int16_t raw_mag_z = (buffer[5] << 8) | buffer[4];
+
+    // Check for overflow (MSB of buffer[6] indicates overflow)
     if (buffer[6] & 0x08) {
-        std::cerr << "Magnetometer overflow." << std::endl;
+        std::cerr << "Magnetometer data overflow." << std::endl;
         return;
     }
 
-    // FIRST apply factory sensitivity adjust
-    float fx = raw_x * mag_resolution * mag_bias_factory[0];
-    float fy = raw_y * mag_resolution * mag_bias_factory[1];
-    float fz = raw_z * mag_resolution * mag_bias_factory[2];
-
-    // THEN subtract your hard-iron bias and apply your soft-iron scale
-    m[0] = (fx - mag_bias[0]) * mag_scale[0];
-    m[1] = (fy - mag_bias[1]) * mag_scale[1];
-    m[2] = (fz - mag_bias[2]) * mag_scale[2];
+    // Apply sensitivity adjustment and resolution
+    m[0] = raw_mag_x * mag_resolution * mag_scale[0];
+    m[1] = raw_mag_y * mag_resolution * mag_scale[1];
+    m[2] = raw_mag_z * mag_resolution * mag_scale[2];
 }
 
 bool MPU9250::read_mag(int16_t* destination) {
@@ -578,13 +573,8 @@ void MPU9250::write_gyro_offset() {
     i2cBus_.write_byte(mpu_i2c_addr, ZG_OFFSET_L, gyro_offset_data[5]);
 }
 
-// Before your existing body of MPU9250::calibrate_mag_impl(), insert these two lines:
+// mag calibration is executed in MAG_OUTPUT_BITS: 16BITS
 void MPU9250::calibrate_mag_impl() {
-    // **RESET** any prior hard-iron and soft-iron corrections
-    mag_bias[0] = mag_bias[1] = mag_bias[2] = 0.0f;
-    mag_scale[0] = mag_scale[1] = mag_scale[2] = 1.0f;
-
-    // now continue exactly as before:
     // set MAG_OUTPUT_BITS to maximum to calibrate
     MAG_OUTPUT_BITS mag_output_bits_cache = setting.mag_output_bits;
     setting.mag_output_bits = MAG_OUTPUT_BITS::M16BITS;
@@ -594,14 +584,13 @@ void MPU9250::calibrate_mag_impl() {
     if (b_verbose) {
         printf("Mag Calibration done!\n");
         printf("AK8963 mag biases (mG) %.2f, %.2f, %.2f\n", mag_bias[0], mag_bias[1], mag_bias[2]);
-        printf("AK8963 mag scale  (mG) %.2f, %.2f, %.2f\n", mag_scale[0], mag_scale[1], mag_scale[2]);
+        printf("AK8963 mag scale (mG) %.2f, %.2f, %.2f\n", mag_scale[0], mag_scale[1], mag_scale[2]);
     }
 
     // restore MAG_OUTPUT_BITS
     setting.mag_output_bits = mag_output_bits_cache;
     initAK8963();
 }
-
 
 
 void MPU9250::collect_mag_data_to(float* m_bias, float* m_scale) {
