@@ -5,7 +5,6 @@ import pynmea2
 
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSDurabilityPolicy
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 
 class Gtu7GpsNode(Node):
@@ -24,12 +23,7 @@ class Gtu7GpsNode(Node):
         self.sigma_alt = None
 
         # --- publisher ---
-        qos = QoSProfile(
-            depth=10,
-            reliability=QoSReliabilityPolicy.BEST_EFFORT,
-            durability=QoSDurabilityPolicy.VOLATILE
-        )
-        self.pub = self.create_publisher(NavSatFix, 'gps_data', qos)
+        self.pub = self.create_publisher(NavSatFix, 'gps_data', 10)
 
         # --- open serial port ---
         try:

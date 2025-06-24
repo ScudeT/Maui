@@ -3,7 +3,6 @@ from typing import List, Tuple
 
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Float32
 from rcl_interfaces.msg import ParameterDescriptor, ParameterType
@@ -78,15 +77,12 @@ class NavSatFollower(Node):
         self.gps_topic = p('gps_topic').get_parameter_value().string_value
         self.current_index = 0
 
-        # QoSProfile: match publisher (often BEST_EFFORT for sensors)
-        qos = QoSProfile(depth=10, reliability=QoSReliabilityPolicy.BEST_EFFORT)
 
         # Subscribers and publishers
         self.subscription = self.create_subscription(
             NavSatFix,
             self.gps_topic,
-            self.gps_callback,
-            qos)
+            self.gps_callback, 10)
 
         self.yaw_pub = self.create_publisher(Float32, 'yaw_set', 10)
         self.target_pub = self.create_publisher(NavSatFix, 'gps_target', 10)
