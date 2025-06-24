@@ -79,8 +79,8 @@ public:
 
     RCLCPP_WARN(this->get_logger(), "Starting calibration for MPU9250...");
     imu_->calibrateAccelGyro();
-    //imu_->calibrateMag();
-    //RCLCPP_WARN(this->get_logger(), "Calibration complete. Configuring MPU9250...");
+    imu_->calibrateMag();
+    RCLCPP_WARN(this->get_logger(), "Calibration complete. Configuring MPU9250...");
 
     // Use the enum value for filter selection directly.
     QuatFilterSel filter_sel = static_cast<QuatFilterSel>(filter_val);
