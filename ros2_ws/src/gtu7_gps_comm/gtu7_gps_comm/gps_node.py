@@ -13,17 +13,17 @@ class Gtu7GpsNode(Node):
         super().__init__('gtu7_gps_node')
 
         # Parameters
-        self.declare_parameter('uere', 5.0)  # User equivalent range error (meters)
+        self.declare_parameter('uere', 5.0)  # meters
         self.uere = self.get_parameter('uere').value
 
-        # NMEA-derived quality metrics
+        # NMEA‐derived quality metrics
         self.hdop = None
         self.vdop = None
         self.sigma_lat = None
         self.sigma_lon = None
         self.sigma_alt = None
 
-        # Publisher with best-effort, volatile QoS
+        # Publisher
         qos = QoSProfile(
             depth=10,
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
@@ -34,16 +34,14 @@ class Gtu7GpsNode(Node):
         # Open serial port
         try:
             self.ser = serial.Serial('/dev/ttyAMA0', baudrate=9600, timeout=1.0)
-            self.get_logger().info('Opened serial port /dev/ttyAMA0 @9600')
+            self.get_logger().info('Opened /dev/ttyAMA0 @9600')
         except serial.SerialException as e:
-            self.get_logger().error(f'Failed to open /dev/ttyAMA0: {e}')
+            self.get_logger().error(f'Failed to open serial port: {e}')
             raise
 
-        # Timer to poll GPS
         self.create_timer(0.1, self.timer_callback)
 
     def timer_callback(self):
-        """Read NMEA line, parse, update metrics or publish NavSatFix."""
         try:
             raw = self.ser.readline()
             line = raw.decode('ascii', errors='replace').strip()
@@ -59,65 +57,70 @@ class Gtu7GpsNode(Node):
         except pynmea2.ParseError:
             return
 
-        stype = msg.sentence_type  # e.g. "GGA", "RMC", "GSA", "GST", etc.
+        stype = msg.sentence_type
 
-        # Update DOP from GSA
+        # —— GSA: update HDOP/VDOP —— 
         if stype == 'GSA':
-            try:
-                self.hdop = float(msg.hdop)
-                self.vdop = float(msg.vdop)
-                self.get_logger().debug(f'Updated HDOP={self.hdop}, VDOP={self.vdop}')
-            except (AttributeError, ValueError):
-                pass
+            if getattr(msg, 'hdop', None) not in (None, '') and getattr(msg, 'vdop', None) not in (None, ''):
+                try:
+                    self.hdop = float(msg.hdop)
+                    self.vdop = float(msg.vdop)
+                    self.get_logger().debug(f'HDOP={self.hdop}, VDOP={self.vdop}')
+                except ValueError:
+                    pass
             return
 
-        # Update sigma estimates from GST
+        # —— GST: update σ estimates —— 
         if stype == 'GST':
-            try:
-                self.sigma_lat = float(msg.std_dev_latitude)
-                self.sigma_lon = float(msg.std_dev_longitude)
-                self.sigma_alt = float(msg.std_dev_altitude)
-                self.get_logger().debug(
-                    f'Updated σ_lat={self.sigma_lat}, σ_lon={self.sigma_lon}, σ_alt={self.sigma_alt}'
-                )
-            except (AttributeError, ValueError):
-                pass
+            lat_sd = getattr(msg, 'std_dev_latitude', None)
+            lon_sd = getattr(msg, 'std_dev_longitude', None)
+            alt_sd = getattr(msg, 'std_dev_altitude', None)
+            if lat_sd not in (None, '') and lon_sd not in (None, '') and alt_sd not in (None, ''):
+                try:
+                    self.sigma_lat = float(lat_sd)
+                    self.sigma_lon = float(lon_sd)
+                    self.sigma_alt = float(alt_sd)
+                    self.get_logger().debug(
+                        f'σ_lat={self.sigma_lat}, σ_lon={self.sigma_lon}, σ_alt={self.sigma_alt}'
+                    )
+                except ValueError:
+                    pass
             return
 
-        # Only process fixes from GGA or RMC
+        # —— Only process valid RMC/GGA fixes —— 
         if stype == 'RMC':
-            # RMC status: 'A' = valid, 'V' = void
             if getattr(msg, 'status', None) != 'A':
                 return
         elif stype == 'GGA':
-            # GGA gps_qual: '0' = invalid
-            if getattr(msg, 'gps_qual', '0') == '0':
+            if getattr(msg, 'gps_qual', None) in (None, '0', 0):
                 return
         else:
             return
 
-        # Parse latitude/longitude
+        # —— Parse lat/lon —— 
+        if getattr(msg, 'latitude', None) in (None, '') or getattr(msg, 'longitude', None) in (None, ''):
+            return
         try:
             lat = float(msg.latitude)
             lon = float(msg.longitude)
-        except (TypeError, ValueError):
+        except ValueError:
             return
 
-        # Parse altitude if GGA, else NaN
-        if stype == 'GGA':
+        # —— Parse altitude if GGA —— 
+        if stype == 'GGA' and getattr(msg, 'altitude', None) not in (None, ''):
             try:
                 alt = float(msg.altitude)
-            except (AttributeError, ValueError):
+            except ValueError:
                 alt = math.nan
         else:
             alt = math.nan
 
-        # Build NavSatFix message
+        # —— Build NavSatFix —— 
         nav = NavSatFix()
         nav.header.stamp = self.get_clock().now().to_msg()
         nav.header.frame_id = 'gps'
 
-        # Fill status field
+        # status
         if stype == 'GGA':
             nav.status.status = (
                 NavSatStatus.STATUS_FIX
@@ -132,27 +135,23 @@ class Gtu7GpsNode(Node):
         nav.longitude = lon
         nav.altitude = alt
 
-        # Compute covariance
+        # —— Compute covariance —— 
         cov = None
         cov_type = NavSatFix.COVARIANCE_TYPE_UNKNOWN
 
+        # 1) GST-based
         if self.sigma_lat is not None and self.sigma_lon is not None and self.sigma_alt is not None:
-            # Use GST sigma estimates directly
             Cxx = self.sigma_lon ** 2
             Cyy = self.sigma_lat ** 2
             Czz = self.sigma_alt ** 2
-            cov = [Cxx, 0.0, 0.0,
-                   0.0, Cyy, 0.0,
-                   0.0, 0.0, Czz]
+            cov = [Cxx,0,0, 0,Cyy,0, 0,0,Czz]
             cov_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
 
+        # 2) DOP-based
         elif self.hdop is not None and self.vdop is not None:
-            # Approximate using DOP metrics and UERE
-            C_horiz = (self.hdop * self.uere) ** 2
-            C_vert  = (self.vdop  * self.uere) ** 2
-            cov = [C_horiz, 0.0,     0.0,
-                   0.0,     C_horiz, 0.0,
-                   0.0,     0.0,     C_vert]
+            C_h = (self.hdop * self.uere) ** 2
+            C_v = (self.vdop * self.uere) ** 2
+            cov = [C_h,0,0, 0,C_h,0, 0,0,C_v]
             cov_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
 
         if cov is not None:
@@ -161,7 +160,7 @@ class Gtu7GpsNode(Node):
         else:
             nav.position_covariance_type = NavSatFix.COVARIANCE_TYPE_UNKNOWN
 
-        # Publish and log
+        # —— Publish —— 
         self.pub.publish(nav)
         self.get_logger().info(
             f'Published [{stype}] fix: lat={lat:.6f}, lon={lon:.6f}, '
@@ -176,7 +175,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
-        node.get_logger().info('Shutting down GPS node')
+        node.get_logger().info('Shutting down')
         node.destroy_node()
         rclpy.shutdown()
 
