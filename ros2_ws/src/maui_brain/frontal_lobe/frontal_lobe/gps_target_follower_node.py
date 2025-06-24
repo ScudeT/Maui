@@ -102,8 +102,8 @@ class NavSatFollower(Node):
 
         # Update target after index change
         tgt_lat, tgt_lon = self.points[self.current_index]
-        yaw = bearing_to_target(lat, lon, tgt_lat, tgt_lon)
-        self.get_logger().debug(f'Publishing yaw: {yaw:.3f} rad')
+        yaw = bearing_to_target(lat, lon, tgt_lat, tgt_lon)*180/math.pi  # Convert to degrees
+        self.get_logger().debug(f'Publishing yaw: {yaw:.3f}°')
 
         yaw_msg = Float32()
         yaw_msg.data = yaw

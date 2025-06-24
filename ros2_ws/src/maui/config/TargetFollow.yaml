@@ -6,9 +6,9 @@ path/gps_follower:
 path/depth_sine:
   ros__parameters:
     freq: 30.0
-    amplitude: 0.1
-    period: 20.0
-    offset: -0.15
+    amplitude: 0.5
+    period: 10.0
+    offset: -0.1
     start_from: 0.05
     delay: 3.0
     upper_limit: 0.0

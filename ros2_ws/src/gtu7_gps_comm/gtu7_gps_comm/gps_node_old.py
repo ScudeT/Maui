@@ -1,79 +1,103 @@
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import NavSatFix
-import gpsd
-import socket
+from sensor_msgs.msg import NavSatFix, NavSatStatus
+import serial
+import pynmea2
+import math
 
-class GpsPublisher(Node):
-
+class Gtu7GpsNode(Node):
     def __init__(self):
-        super().__init__('gps_publisher')
-        self.publisher_ = self.create_publisher(NavSatFix, 'gps_data', 10)
+        super().__init__('gtu7_gps_node')
+        self.pub = self.create_publisher(NavSatFix, 'gps_data', 10)
 
-        self.declare_parameter('freq', 1.0)
-        freq = self.get_parameter('freq').value
-        period = 1.0 / freq if freq > 0 else 1.0
-
-        # Use the correct host for GPSD (adjust as needed)
-        gpsd_host = self.declare_parameter('gpsd_host', 'localhost').value
-        gpsd_port = self.declare_parameter('gpsd_port', 2947).value
-
+        # open serial port
         try:
-            gpsd.connect(host=gpsd_host, port=gpsd_port)
-            self.get_logger().info(f"Connected to gpsd at {gpsd_host}:{gpsd_port}")
-        except (socket.error, Exception) as e:
-            self.get_logger().error(f"Could not connect to gpsd: {e}")
-            raise SystemExit(1)
+            self.ser = serial.Serial('/dev/ttyAMA0', baudrate=9600, timeout=1.0)
+            self.get_logger().info('Opened /dev/ttyAMA0')
+        except serial.SerialException as e:
+            self.get_logger().error(f"Serial error: {e}")
+            raise
 
-        self.last_fix_mode = None
-        self.timer = self.create_timer(period, self.publish_gps_data)
+        self.timer = self.create_timer(0.1, self.timer_callback)
 
-    def publish_gps_data(self):
+    def timer_callback(self):
+        line = None
         try:
-            gps_data = gpsd.get_current()
+            raw = self.ser.readline()
+            line = raw.decode('ascii', errors='replace').strip()
         except Exception as e:
-            self.get_logger().warn(f'Failed to read GPS data: {e}')
+            self.get_logger().warn(f"Read error: {e}")
             return
 
-        # Mode: 1 = no fix, 2 = 2D fix, 3 = 3D fix
-        mode = getattr(gps_data, 'mode', 0)
-        if mode < 2:
-            if self.last_fix_mode != mode:
-                self.get_logger().warn(f'GPS fix not valid (mode={mode}). Waiting for fix...')
-            self.last_fix_mode = mode
+        if not line.startswith('$'):
             return
 
         try:
-            msg = NavSatFix()
-            msg.header.frame_id = "gps_link"
-            msg.header.stamp = self.get_clock().now().to_msg()
-            msg.latitude = float(gps_data.lat)
-            msg.longitude = float(gps_data.lon)
-            msg.altitude = float(gps_data.alt)
+            msg = pynmea2.parse(line)
+        except pynmea2.ParseError:
+            return
 
-            self.get_logger().info(
-                f"Publishing GPS data: {msg.latitude:.6f}, {msg.longitude:.6f}, {msg.altitude:.2f}"
+        # only GGA and RMC have position
+        if not isinstance(msg, (pynmea2.types.talker.GGA,
+                                pynmea2.types.talker.RMC)):
+            return
+
+        # convert lat/lon to floats, skip if invalid
+        try:
+            lat = float(msg.latitude)
+            lon = float(msg.longitude)
+        except (TypeError, ValueError):
+            return
+
+        # if no valid fix yet, latitude/longitude might be zero
+        # but we'll still publish 0,0 if that's actually what the receiver says
+        # retrieve altitude if present (GGA), else NaN
+        if hasattr(msg, 'altitude'):
+            try:
+                alt = float(msg.altitude)
+            except (TypeError, ValueError):
+                alt = math.nan
+        else:
+            alt = math.nan
+
+        # build NavSatFix
+        nav = NavSatFix()
+        nav.header.stamp = self.get_clock().now().to_msg()
+        nav.header.frame_id = 'gps'
+
+        # status: for GGA use gps_qual (0=no fix), else RMC we assume a fix if lat/lon parsed
+        if hasattr(msg, 'gps_qual'):
+            nav.status.status = (
+                NavSatStatus.STATUS_FIX
+                if int(msg.gps_qual) > 0 else NavSatStatus.STATUS_NO_FIX
             )
-            self.publisher_.publish(msg)
-        except AttributeError as e:
-            self.get_logger().warn(f"GPS data missing expected fields: {e}")
+        else:
+            nav.status.status = NavSatStatus.STATUS_FIX
 
-    def dmm_to_dd(val):
-        degrees = int(val // 100)
-        minutes = val - degrees * 100
-        return degrees + minutes / 60
+        nav.status.service = NavSatStatus.SERVICE_GPS
+
+        nav.latitude = lat
+        nav.longitude = lon
+        nav.altitude = alt
+
+        # unknown covariance
+        nav.position_covariance_type = NavSatFix.COVARIANCE_TYPE_UNKNOWN
+
+        self.pub.publish(nav)
+        self.get_logger().debug(f"Published fix: {lat}, {lon}, alt={alt}")
 
 def main(args=None):
     rclpy.init(args=args)
-    node = GpsPublisher()
-
+    node = Gtu7GpsNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
-
-    node.destroy_node()
-    rclpy.shutdown()
+    finally:
+        node.get_logger().info('Shutting down')
+        node.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
