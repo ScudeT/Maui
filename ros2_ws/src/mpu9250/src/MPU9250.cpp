@@ -610,10 +610,10 @@ void MPU9250::collect_mag_data_to(float* m_bias, float* m_scale) {
     int16_t mag_min[3] = {32767, 32767, 32767};
     int16_t mag_temp[3] = {0, 0, 0};
     for (uint16_t ii = 0; ii < sample_count; ii++) {
-        read_mag(mag_temp);  // Read the mag data
+        update_mag();  // Read the mag data
         for (int jj = 0; jj < 3; jj++) {
-            if (mag_temp[jj] > mag_max[jj]) mag_max[jj] = mag_temp[jj];
-            if (mag_temp[jj] < mag_min[jj]) mag_min[jj] = mag_temp[jj];
+            if (m[jj] > mag_max[jj]) mag_max[jj] = m[jj];
+            if (m[jj] < mag_min[jj]) mag_min[jj] = m[jj];
         }
         if (MAG_MODE == 0x02) std::this_thread::sleep_for(std::chrono::milliseconds(135));  // at 8 Hz ODR, new mag data is available every 125 ms
         if (MAG_MODE == 0x06) std::this_thread::sleep_for(std::chrono::milliseconds(12));   // at 100 Hz ODR, new mag data is available every 10 ms
