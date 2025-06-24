@@ -59,7 +59,7 @@ class NavSatFollower(Node):
             description='GPS input topic name'
         )
 
-        self.declare_parameter('points', [ 45.850235,9.396081, 45.859799,9.396632], points_desc)
+        self.declare_parameter('points', [ 45.89920, 9.33136, 45.89868, 9.33102], points_desc)
         self.declare_parameter('threshold', 2.0, thresh_desc)
         self.declare_parameter('gps_topic', 'gps_data', topic_desc)
 
