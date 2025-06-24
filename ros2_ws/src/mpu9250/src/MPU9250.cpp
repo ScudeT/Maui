@@ -637,14 +637,9 @@ void MPU9250::collect_mag_data_to(float* m_bias, float* m_scale) {
     }
 
     // Get hard iron correction
-    bias[0] = (mag_max[0] + mag_min[0]) / 2;  // get average x mag bias in counts
-    bias[1] = (mag_max[1] + mag_min[1]) / 2;  // get average y mag bias in counts
-    bias[2] = (mag_max[2] + mag_min[2]) / 2;  // get average z mag bias in counts
-
-    float bias_resolution = get_mag_resolution(MAG_OUTPUT_BITS::M16BITS);
-    m_bias[0] = (float)bias[0] * bias_resolution * mag_bias_factory[0];  // save mag biases in G for main program
-    m_bias[1] = (float)bias[1] * bias_resolution * mag_bias_factory[1];
-    m_bias[2] = (float)bias[2] * bias_resolution * mag_bias_factory[2];
+    m_bias[0] = (mag_max[0] + mag_min[0]) / 2;  // get average x mag bias in counts
+    m_bias[1] = (mag_max[1] + mag_min[1]) / 2;  // get average y mag bias in counts
+    m_bias[2] = (mag_max[2] + mag_min[2]) / 2;  // get average z mag bias in counts
 
     // Get soft iron correction estimate
     //*** multiplication by mag_bias_factory added in accordance with the following comment
