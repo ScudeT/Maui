@@ -27,7 +27,7 @@ public:
     this->declare_parameter<double>("acc_cov", 0.01);
     this->declare_parameter<double>("w_cov", 0.01);
     this->declare_parameter<double>("rpy_cov", 0.0003);
-    this->declare_parameter<std::vector<double>>("mag_bias", std::vector<double>{0.0, 0.0, 0.0});
+    this->declare_parameter<std::vector<double>>("mag_bias", std::vector<double>{1808.00, 6009.00, 5016.00});
     
     // Retrieve the update_rate parameter.
     double update_rate = this->get_parameter("freq").as_double();
@@ -81,7 +81,7 @@ public:
     imu_->setMagBias(mag_bias[0], mag_bias[1], mag_bias[2]);
     RCLCPP_WARN(this->get_logger(), "Starting calibration for MPU9250...");
     imu_->calibrateAccelGyro();
-    imu_->calibrateMag();
+    // imu_->calibrateMag();
     RCLCPP_WARN(this->get_logger(), "Calibration complete. Configuring MPU9250...");
 
     // Use the enum value for filter selection directly.
