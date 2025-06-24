@@ -395,9 +395,9 @@ void MPU9250::update_mag() {
     float fz = raw_z * mag_resolution * mag_bias_factory[2];
 
     // THEN subtract your hard-iron bias and apply your soft-iron scale
-    m[0] = (fx - mag_bias[0]) * mag_scale[0];
-    m[1] = (fy - mag_bias[1]) * mag_scale[1];
-    m[2] = (fz - mag_bias[2]) * mag_scale[2];
+    m[0] = fx * mag_scale[0] - mag_bias[0] ;
+    m[1] = fy * mag_scale[1] - mag_bias[1];
+    m[2] = fz * mag_scale[2] - mag_bias[2];
 }
 
 bool MPU9250::read_mag(int16_t* destination) {
