@@ -108,7 +108,7 @@ class NavSatFollower(Node):
             self.current_index = (self.current_index + 1) % len(self.points)
             tgt_lat, tgt_lon = self.points[self.current_index]
 
-        yaw_rad = bearing_to_target(lat, lon, tgt_lat, tgt_lon)
+        yaw_rad = bearing_to_target(tgt_lat, tgt_lon,lat, lon)
         yaw_deg = yaw_rad * 180.0 / math.pi
         self.get_logger().debug(f'Publishing yaw: {yaw_deg:.2f}°')
 
