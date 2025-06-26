@@ -27,7 +27,7 @@ public:
     this->declare_parameter<double>("acc_cov", 0.01);
     this->declare_parameter<double>("w_cov", 0.01);
     this->declare_parameter<double>("rpy_cov", 0.0003);
-    this->declare_parameter<std::vector<double>>("mag_bias", std::vector<double>{1500.0, 500.0, -1250.0});
+    this->declare_parameter<std::vector<double>>("mag_bias", std::vector<double>{500.0, 1500.0, 1250.0});
     
     // Retrieve the update_rate parameter.
     double update_rate = this->get_parameter("freq").as_double();
