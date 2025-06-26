@@ -24,7 +24,7 @@ udevadm info -a -p $(udevadm info -q path -n /dev/ttyAMA0) # check for mathcing 
 
 sudo dmesg | grep tty   # check serial ports
 
-sudo fuser /dev/ttyACM0 # check processes running on port 
+sudo fuser /dev/ttyAMA0 # check processes running on port 
 sudo kill xxxx          # fill process with PID xxxx 
 
 sudo minicom -b 9600 -o -D /dev/ttyAMA0     # show terminal output

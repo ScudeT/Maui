@@ -154,15 +154,5 @@ def generate_launch_description():
     
     # Add the hardware launch at the beginning
     ld.add_action(RMF_launch)
-
-    foxglove = Node(
-        package='foxglove_bridge',
-        executable='foxglove_bridge',
-        arguments=['--ros-args', '--log-level', 'WARN'],
-        output='screen',
-    )
-    # Add the included launch description to your LaunchDescription
-    ld.add_action(foxglove)
-
     # Run everything
     return ld
