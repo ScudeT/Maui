@@ -58,4 +58,15 @@ def generate_launch_description():
 
     # ------------------------------- #
 
+    foxglove = Node(
+        package='foxglove_bridge',
+        executable='foxglove_bridge',
+        output='screen',
+        arguments=['--ros-args', '--log-level', 'WARN'],
+    )
+
+    ld.add_action(foxglove)
+
+    # ------------------------------- #
+
     return ld

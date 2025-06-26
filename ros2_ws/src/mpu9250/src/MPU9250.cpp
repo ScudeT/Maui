@@ -616,10 +616,9 @@ void MPU9250::collect_mag_data_to(float* m_bias, float* m_scale) {
     else if (MAG_MODE == 0x06)  // in this library, fixed to 100Hz
         sample_count = 1500;    // at 100 Hz ODR, new mag data is available every 10 ms
 
-    int32_t bias[3] = {0, 0, 0}, scale[3] = {0, 0, 0};
+    int32_t scale[3] = {0, 0, 0};
     int16_t mag_max[3] = {-32767, -32767, -32767};
     int16_t mag_min[3] = {32767, 32767, 32767};
-    int16_t mag_temp[3] = {0, 0, 0};
     for (uint16_t ii = 0; ii < sample_count; ii++) {
         update_mag();  // Read the mag data
         for (int jj = 0; jj < 3; jj++) {
