@@ -57,4 +57,4 @@ memory:
 
 fatique:
   ros__parameters:
-    time_out: 30.0
+    time_out: 120.0
