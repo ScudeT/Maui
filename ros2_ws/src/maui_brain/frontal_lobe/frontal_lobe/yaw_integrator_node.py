@@ -12,44 +12,88 @@ class YawIntegratorNode(Node):
     def __init__(self):
         super().__init__('yaw_integrator_node')
 
-        # Declare and get parameters
+        # === Declare parameters with defaults ===
         self.declare_parameter('freq', 10)
         self.declare_parameter('wz', 0.1)
-        self.frequency = self.get_parameter('freq').get_parameter_value().integer_value
-        self.wz = self.get_parameter('wz').get_parameter_value().double_value
 
-        # Publisher
+        # === Read initial parameters ===
+        self._read_parameters()
+
+        # === Publisher & Subscriber ===
         self.yaw_pub = self.create_publisher(Float32, 'yaw', 10)
-
-        # Subscriber
         self.measure_sub = self.create_subscription(
             Odometry, 'measure', self.measure_callback, 10)
 
-        # Trigger service
-        self.trigger_srv = self.create_service(Trigger, 'trigger', self.trigger_callback)
+        # === Trigger service ===
+        self.trigger_srv = self.create_service(
+            Trigger, 'trigger', self.trigger_callback)
 
-        # Timer
-        self.timer = self.create_timer(float(1.0 / self.frequency), self.timer_callback)
+        # === Main integration timer ===
+        self._build_integration_timer()
 
-        # State
+        # === Parameter‑watcher timer at 1 Hz ===
+        self.param_timer = self.create_timer(
+            1.0, 
+            self.update_parameters
+        )
+
+        # === Internal state ===
         self.running = False
         self.initialized = False
         self.current_yaw = 0.0
         self.last_time = self.get_clock().now()
-
-        # Store the most recent measure yaw
         self.latest_measure_yaw = None
+
+    def _read_parameters(self):
+        p = self.get_parameter
+        # parameter_value().integer_value for ints, .double_value for floats
+        self.frequency = p('freq').get_parameter_value().integer_value
+        self.wz        = p('wz').get_parameter_value().double_value
+
+    def _build_integration_timer(self):
+        # (re)create the timer that calls timer_callback at 1/frequency
+        period = 1.0 / float(self.frequency)
+        # if an old timer exists, cancel it
+        if hasattr(self, 'timer'):
+            self.timer.cancel()
+        self.timer = self.create_timer(period, self.timer_callback)
+        self.get_logger().info(
+            f"Integration timer set to {self.frequency} Hz → period {period:.3f} s"
+        )
+
+    def update_parameters(self):
+        """
+        Runs once per second.  Re-loads 'freq' and 'wz' from the server.
+        If 'freq' changed: rebuild the integration timer.
+        If 'wz' changed: update the gain.
+        """
+        old_freq = self.frequency
+        old_wz   = self.wz
+
+        self._read_parameters()
+
+        if self.frequency != old_freq:
+            self._build_integration_timer()
+            self.get_logger().info(
+                f"'freq' parameter changed: {old_freq} → {self.frequency}"
+            )
+
+        if self.wz != old_wz:
+            self.get_logger().info(
+                f"'wz' parameter changed: {old_wz:.3f} → {self.wz:.3f}"
+            )
 
     def measure_callback(self, msg):
         q = msg.pose.pose.orientation
         yaw = self.quaternion_to_yaw(q.x, q.y, q.z, q.w)
         self.latest_measure_yaw = yaw
 
-        # Initialize on first measure ever (legacy, can keep for robustness)
         if not self.initialized:
             self.current_yaw = yaw
             self.initialized = True
-            self.get_logger().info(f'Initial yaw set from measure: {yaw:.3f} rad')
+            self.get_logger().info(
+                f'Initial yaw set from measure: {yaw:.3f} rad'
+            )
 
     def timer_callback(self):
         now = self.get_clock().now()
@@ -65,7 +109,7 @@ class YawIntegratorNode(Node):
             if self.latest_measure_yaw is not None:
                 msg.data = self.latest_measure_yaw * RAD2DEG
             else:
-                return  # Nothing to publish yet
+                return  # nothing yet
 
         self.yaw_pub.publish(msg)
 
@@ -76,11 +120,12 @@ class YawIntegratorNode(Node):
                 response.message = "Waiting for measure to initialize yaw."
                 return response
 
-            # **Reset current_yaw to the latest measure value**
             self.current_yaw = self.latest_measure_yaw
             self.last_time = self.get_clock().now()
             self.running = True
-            self.get_logger().info(f"Yaw integration started. Yaw reset to latest measure: {self.current_yaw:.3f} rad")
+            self.get_logger().info(
+                f"Yaw integration started. Reset to {self.current_yaw:.3f} rad"
+            )
             response.success = True
             response.message = "Started"
         else:

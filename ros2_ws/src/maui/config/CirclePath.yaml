@@ -32,27 +32,20 @@ reflex:
 memory:
   ros__parameters:
     topics:
-      - '/button_state:std_msgs/msg/Bool'
       - '/command:std_msgs/msg/Int32MultiArray'
-      - '/input/omega_m:std_msgs/msg/Float32'
-      - '/input/A_m:std_msgs/msg/Float32'
-      - '/input/A_d:std_msgs/msg/Float32'
+      - '/input/A_d:std_msgs/msg/Float32' 
       - '/input/alpha_d:std_msgs/msg/Float32'
-      - '/input/alpha_m:std_msgs/msg/Float32'
       - '/input/theta_m:std_msgs/msg/Float32'
-      - '/input/theta_d:std_msgs/msg/Float32'
       - '/imu/data:sensor_msgs/msg/Imu'
       - '/gps_data:sensor_msgs/msg/NavSatFix'
       - '/ms5837/pose:geometry_msgs/msg/PoseWithCovarianceStamped'
       - '/est/odom:nav_msgs/msg/Odometry'
-#      - '/camera_1:sensor_msgs/msg/Image'
-#      - '/camera_2:sensor_msgs/msg/Image'
-      #- '/attitude/q_ref:geometry_msgs/msg/PoseStamped'
+      - '/attitude/w_ref:geometry_msgs/msg/Vector3'
+      - '/attitude/q_ref:geometry_msgs/msg/PoseStamped'
       - '/attitude/roll_set:std_msgs/msg/Float32'
       - '/attitude/pitch_set:std_msgs/msg/Float32'
       - '/attitude/yaw_set:std_msgs/msg/Float32'
       - '/depth/z_set:std_msgs/msg/Float32'
-     # - '/param_dump:std_msgs/msg/String'
     parent_folder: 'bags/circle_path'
 
 fatique:

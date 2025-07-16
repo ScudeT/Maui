@@ -10,7 +10,7 @@ class SinePublisher(Node):
     def __init__(self):
         super().__init__('sine_publisher')
 
-        # === Dichiarazione Parametri ===
+        # === Declare parameters with defaults ===
         self.declare_parameter('freq', 10.0)
         self.declare_parameter('amplitude', 1.0)
         self.declare_parameter('period', 2.0)
@@ -21,17 +21,50 @@ class SinePublisher(Node):
         self.declare_parameter('lower_limit', -1.0)
         self.declare_parameter('topic_name', 'sine_value')
 
-        # === Lettura Parametri ===
-        self.freq = self.get_parameter('freq').value
-        self.amplitude = self.get_parameter('amplitude').value
-        self.period = self.get_parameter('period').value
-        self.offset = self.get_parameter('offset').value
-        self.start_from_value = self.get_parameter('start_from').value
-        self.delay = self.get_parameter('delay').value
-        self.upper_limit = self.get_parameter('upper_limit').value
-        self.lower_limit = self.get_parameter('lower_limit').value
+        # === Read them once at startup ===
+        self._read_parameters()
 
-        # === Calcolo fase iniziale dalla start_from_value ===
+        # === Compute initial phase ===
+        self._compute_initial_phase()
+
+        # === Publisher & main-timer (triggered at 'freq') ===
+        self.publisher_ = self.create_publisher(
+            Float32,
+            self.get_parameter('topic_name').value,
+            10
+        )
+        self.sine_timer = self.create_timer(
+            1.0 / self.freq,
+            self.publish_value
+        )
+
+        # === Parameter-watcher timer (fires once per second) ===
+        self.param_timer = self.create_timer(
+            1.0,
+            self.update_parameters
+        )
+
+        # === ON/OFF state + Trigger service ===
+        self.active = False
+        self.activation_time = None
+        self.srv = self.create_service(
+            Trigger,
+            'toggle_sinusoid',
+            self.handle_trigger
+        )
+
+    def _read_parameters(self):
+        p = self.get_parameter
+        self.freq          = p('freq').value
+        self.amplitude     = p('amplitude').value
+        self.period        = p('period').value
+        self.offset        = p('offset').value
+        self.start_from_value = p('start_from').value
+        self.delay         = p('delay').value
+        self.upper_limit   = p('upper_limit').value
+        self.lower_limit   = p('lower_limit').value
+
+    def _compute_initial_phase(self):
         if self.amplitude == 0.0:
             self.phase = 0.0
         else:
@@ -39,16 +72,30 @@ class SinePublisher(Node):
             ratio_clamped = min(max(ratio, -1.0), 1.0)
             self.phase = math.asin(ratio_clamped)
 
-        # === Publisher e Timer ===
-        self.publisher_ = self.create_publisher(Float32, "sin", 10)
-        self.timer = self.create_timer(1.0 / self.freq, self.publish_value)
+    def update_parameters(self):
+        """
+        Called once per second.  Re-fetch all parameters,
+        and if 'freq' changed, re-create the sine_timer
+        so it runs at the new rate.
+        """
+        old_freq = self.freq
+        self._read_parameters()
 
-        # === Stato ON/OFF e tempo ===
-        self.active = False
-        self.activation_time = None  # Set when triggered ON
+        # If freq changed, rebuild the sine_timer with new period
+        if self.freq != old_freq:
+            # cancel old timer
+            self.sine_timer.cancel()
+            # create a new one at the new rate
+            self.sine_timer = self.create_timer(
+                1.0 / self.freq,
+                self.publish_value
+            )
+            self.get_logger().info(f"freq changed → new publish rate: {self.freq} Hz")
 
-        # === Servizio Trigger ===
-        self.srv = self.create_service(Trigger, 'toggle_sinusoid', self.handle_trigger)
+        # If amplitude, offset, or start_from changed, recompute phase
+        # (so it picks up a new start value immediately)
+        # You could add similar checks/logs for other params if you like:
+        self._compute_initial_phase()
 
     def handle_trigger(self, request, response):
         self.active = not self.active
@@ -64,21 +111,20 @@ class SinePublisher(Node):
 
     def publish_value(self):
         msg = Float32()
-
         if self.active:
             elapsed = time.time() - self.activation_time
             if elapsed < self.delay:
-                # Delay non ancora trascorso → non pubblica nulla
-                return
+                return  # still in startup delay
             t = elapsed - self.delay
-            value = self.amplitude * math.cos(2 * math.pi * t / self.period + self.phase) + self.offset
-            value = min(max(value, self.lower_limit), self.upper_limit)
-            msg.data = value
+            val = self.amplitude * math.cos(
+                2 * math.pi * t / self.period + self.phase
+            ) + self.offset
+            # clamp to limits
+            val = min(max(val, self.lower_limit), self.upper_limit)
+            msg.data = val
         else:
-            msg.data = self.start_from_value  # Stato OFF
-
+            msg.data = self.start_from_value
         self.publisher_.publish(msg)
-
 
 def main(args=None):
     rclpy.init(args=args)
@@ -86,7 +132,6 @@ def main(args=None):
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()
