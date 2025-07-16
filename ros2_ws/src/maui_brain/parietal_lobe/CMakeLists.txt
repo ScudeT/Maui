@@ -56,10 +56,33 @@ ament_target_dependencies(imu_change_ref
   tf2_geometry_msgs
 )
 
+add_executable(gps_to_local 
+  src/gps_to_local.cpp
+)
+ament_target_dependencies(gps_to_local
+   rclcpp
+   sensor_msgs
+   nav_msgs
+   geometry_msgs
+)
+
+add_executable(local_to_gps
+  src/local_to_gps.cpp
+)
+
+ament_target_dependencies(local_to_gps
+  rclcpp
+  sensor_msgs
+  nav_msgs
+  geometry_msgs
+  )
+
 install(TARGETS
   imu_bar_odom
   joint_pose_node
   imu_change_ref
+  gps_to_local
+  local_to_gps
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY config/ 
