@@ -19,7 +19,6 @@ class SinePublisher(Node):
         self.declare_parameter('delay', 0.0)
         self.declare_parameter('upper_limit', 1.0)
         self.declare_parameter('lower_limit', -1.0)
-        self.declare_parameter('topic_name', 'sine_value')
 
         # === Read them once at startup ===
         self._read_parameters()
@@ -30,7 +29,7 @@ class SinePublisher(Node):
         # === Publisher & main-timer (triggered at 'freq') ===
         self.publisher_ = self.create_publisher(
             Float32,
-            self.get_parameter('topic_name').value,
+            "sin",
             10
         )
         self.sine_timer = self.create_timer(
