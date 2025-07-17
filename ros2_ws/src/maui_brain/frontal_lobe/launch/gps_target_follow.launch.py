@@ -41,6 +41,7 @@ def generate_launch_description():
         namespace='path',
         remappings=[
            ('gps_data', '/gps_data'), 
+           ('odom', '/est/odom'),
             
             # -------------------------- #       
             ('yaw_set', '/attitude/yaw_set'), 
