@@ -4,6 +4,7 @@ from typing import List, Tuple
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
+from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32
 from rcl_interfaces.msg import ParameterDescriptor, ParameterType
 
@@ -25,7 +26,6 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
 
     return earth_radius * c
 
-
 def bearing_to_target(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
     Compute bearing from point 1 to point 2 relative to north (0=North, positive clockwise) in radians.
@@ -40,12 +40,11 @@ def bearing_to_target(lat1: float, lon1: float, lat2: float, lon2: float) -> flo
     bearing = math.atan2(y, x)
     return (bearing + 2 * math.pi) % (2 * math.pi)
 
-
 class NavSatFollower(Node):
     def __init__(self):
         super().__init__('navsat_follower')
 
-        # Parameters
+        # --- parameters as before ---
         points_desc = ParameterDescriptor(
             type=ParameterType.PARAMETER_DOUBLE_ARRAY,
             description='Flat list of [lat, lon] pairs'
@@ -59,11 +58,10 @@ class NavSatFollower(Node):
             description='GPS input topic name'
         )
 
-        self.declare_parameter('points', [ 45.89920, 9.33136, 45.89868, 9.33102], points_desc)
+        self.declare_parameter('points', [45.89920, 9.33136, 45.89868, 9.33102], points_desc)
         self.declare_parameter('threshold', 2.0, thresh_desc)
         self.declare_parameter('gps_topic', 'gps_data', topic_desc)
 
-        # Load parameters
         p = self.get_parameter
         raw = p('points').get_parameter_value().double_array_value
         if len(raw) % 2 != 0:
@@ -77,21 +75,46 @@ class NavSatFollower(Node):
         self.gps_topic = p('gps_topic').get_parameter_value().string_value
         self.current_index = 0
 
+        # Track the latest odometry z-value
+        self.odom_z: float = 0.0
 
-        # Subscribers and publishers
-        self.subscription = self.create_subscription(
+        # --- new: subscribe to odometry ---
+        self.odom_sub = self.create_subscription(
+            Odometry,
+            'odom',
+            self.odom_callback,
+            10)
+
+        # subscribe to GPS as before
+        self.gps_sub = self.create_subscription(
             NavSatFix,
             self.gps_topic,
-            self.gps_callback, 10)
+            self.gps_callback,
+            10)
 
+        # publishers and timer unchanged
         self.yaw_pub = self.create_publisher(Float32, 'yaw_set', 10)
         self.target_pub = self.create_publisher(NavSatFix, 'gps_target', 10)
         self.create_timer(1.0, self.publish_target)
 
         self.get_logger().info(
-            f'Following {len(self.points)} points; threshold={self.threshold} m; listening on "{self.gps_topic}"')
+            f'Following {len(self.points)} points; threshold={self.threshold} m; '
+            f'listening on GPS="{self.gps_topic}" and odom="odom"'
+        )
+
+    def odom_callback(self, msg: Odometry):
+        # update the latest z position from odometry
+        self.odom_z = msg.pose.pose.position.z
+        self.get_logger().debug(f'Odometry z = {self.odom_z:.3f}')
 
     def gps_callback(self, msg: NavSatFix):
+        # if odometry says we're below -0.01 m, ignore this GPS reading
+        if self.odom_z < -0.01:
+            self.get_logger().warn(
+                f'Odom z={self.odom_z:.3f} < -0.01: ignoring GPS reading'
+            )
+            return
+
         if not self.points:
             self.get_logger().warn('No points configured')
             return
@@ -104,12 +127,14 @@ class NavSatFollower(Node):
 
         if dist <= self.threshold:
             self.get_logger().info(
-                f'Reached point {self.current_index} at ({tgt_lat:.6f}, {tgt_lon:.6f})')
+                f'Reached point {self.current_index} at '
+                f'({tgt_lat:.6f}, {tgt_lon:.6f})'
+            )
             self.current_index = (self.current_index + 1) % len(self.points)
             tgt_lat, tgt_lon = self.points[self.current_index]
 
         yaw_rad = bearing_to_target(lat, lon, tgt_lat, tgt_lon)
-        yaw_deg = - yaw_rad * 180.0 / math.pi
+        yaw_deg = -yaw_rad * 180.0 / math.pi
         self.get_logger().debug(f'Publishing yaw: {yaw_deg:.2f}°')
 
         self.yaw_pub.publish(Float32(data=yaw_deg))
@@ -127,7 +152,6 @@ class NavSatFollower(Node):
         msg.altitude = 0.0
         self.target_pub.publish(msg)
 
-
 def main(args=None):
     rclpy.init(args=args)
     node = NavSatFollower()
@@ -138,7 +162,6 @@ def main(args=None):
     finally:
         node.destroy_node()
         rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()
