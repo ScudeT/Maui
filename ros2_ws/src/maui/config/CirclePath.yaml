@@ -1,15 +1,15 @@
 path/circle_yaw:
   ros__parameters:
     freq: 30
-    wz: 0.0
+    wz: 0.3
 
 path/depth_sine:
   ros__parameters:
     freq: 30.0
-    amplitude: 0.0
+    amplitude: 0.2
     period: 20.0
-    offset: -0.15
-    start_from: 0.05
+    offset: -0.3
+    start_from: 0.1
     delay: 0.0
     upper_limit: 0.3
     lower_limit: -1.0
@@ -50,4 +50,4 @@ memory:
 
 fatique:
   ros__parameters:
-    time_out: 30.0
+    time_out: 120.0

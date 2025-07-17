@@ -1,7 +1,7 @@
 path/gps_follower:
   ros__parameters:
     threshold: 5.0
-    points: [ 45.89920, 9.33136, 45.898981, 9.331241]
+    points: [ 45.89935, 9.33131, 45.89924, 9.33125]
 
 path/depth_sine:
   ros__parameters:

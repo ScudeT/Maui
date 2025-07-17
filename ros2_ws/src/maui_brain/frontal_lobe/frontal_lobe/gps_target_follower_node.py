@@ -109,7 +109,7 @@ class NavSatFollower(Node):
 
     def gps_callback(self, msg: NavSatFix):
         # if odometry says we're below -0.01 m, ignore this GPS reading
-        if self.odom_z < -0.01:
+        if self.odom_z < -0.05:
             self.get_logger().warn(
                 f'Odom z={self.odom_z:.3f} < -0.01: ignoring GPS reading'
             )
